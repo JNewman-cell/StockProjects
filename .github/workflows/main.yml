@@ -21,6 +21,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4  # Update to a version that supports Node.js 20
 
+    - name: Delete existing dataset files (if any)
+      run: |
+        rm -f nyse_tickers.txt nasdaq_tickers.txt
+
     - name: Pull NYSE tickers
       run: |
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_tickers.txt -O nyse_tickers.txt
