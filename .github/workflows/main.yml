@@ -10,16 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [20.x]
 
     steps:
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
 
     - name: Checkout code
-      uses: actions/checkout@v3  # Update to a version that supports Node.js 20
+      uses: actions/checkout@v4  # Update to a version that supports Node.js 20
 
     - name: Pull NYSE tickers
       run: |
