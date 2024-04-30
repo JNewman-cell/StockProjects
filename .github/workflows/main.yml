@@ -1,11 +1,11 @@
-name: Pull Tickers
+name: Pull and Clean Tickers
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at 12:00 AM PST
+    - cron: '20 0 * * *'  # Runs every day at 12:20 AM UTC
 
 jobs:
-  pull-tickers:
+  pull-clean-tickers:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,4 +28,17 @@ jobs:
         git config --global user.name "JNewman-cell"
         git add nasdaq_tickers.txt
         git commit -m "Update NASDAQ tickers"
+        git push
+
+    - name: Install Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Run Python script to clean tickers
+      run: |
+        python clean_datasets.py nyse_tickers.txt
+        python clean_datasets.py nasdaq_tickers.txt
+        git add nyse_tickers_cleaned.csv nasdaq_tickers_cleaned.csv
+        git commit -m "Cleaned Datasets"
         git push
