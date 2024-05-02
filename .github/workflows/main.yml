@@ -55,8 +55,8 @@ jobs:
 
     - name: Run Python script to clean tickers
       run: |
-        python clean_datasets.py update-tickers/nyse_tickers.txt
-        python clean_datasets.py update-tickers/nasdaq_tickers.txt
+        python StockTickers/clean_datasets.py update-tickers/nyse_tickers.txt
+        python StockTickers/clean_datasets.py update-tickers/nasdaq_tickers.txt
 
     - name: Add cleaned dataset CSVs
       run: |
