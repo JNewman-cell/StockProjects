@@ -28,20 +28,10 @@ jobs:
     - name: Pull NYSE tickers
       run: |
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_tickers.txt -O nyse_tickers.txt
-        git config --global user.email "jpnewman167@gmail.com"
-        git config --global user.name "JNewman-cell"
-        git add nyse_tickers.txt
-        git commit -m "Update NYSE tickers"
-        git push
 
     - name: Pull NASDAQ tickers
       run: |
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_tickers.txt -O nasdaq_tickers.txt
-        git config --global user.email "jpnewman167@gmail.com"
-        git config --global user.name "JNewman-cell"
-        git add nasdaq_tickers.txt
-        git commit -m "Update NASDAQ tickers"
-        git push
 
   clean-datasets:
     runs-on: ubuntu-latest
@@ -65,10 +55,16 @@ jobs:
 
     - name: Run Python script to clean tickers
       run: |
-        python clean_datasets.py nyse_tickers.txt
-        python clean_datasets.py nasdaq_tickers.txt
+        python $GITHUB_WORKSPACE/StockTickers/clean_datasets.py nyse_tickers.txt
+        python $GITHUB_WORKSPACE/StockTickers/clean_datasets.py nasdaq_tickers.txt
+
+    - name: Add cleaned dataset CSVs
+      run: |
+        git add $GITHUB_WORKSPACE/StockTickers/nyse_tickers_cleaned.csv $GITHUB_WORKSPACE/StockTickers/nasdaq_tickers_cleaned.csv
+
+    - name: Commit and push changes
+      run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
-        git add nyse_tickers_cleaned.csv nasdaq_tickers_cleaned.csv
         git commit -m "Add cleaned dataset CSVs"
-        git push
+        git push origin main
