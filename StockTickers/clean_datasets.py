@@ -30,5 +30,5 @@ def clean_tickers(input_file, output_file):
 if __name__ == "__main__":
     import sys
     input_file = sys.argv[1]
-    output_file = input_file.split('.')[0] + '_cleaned.csv'
+    output_file = '../StockTickers/' + input_file.split('.')[0] + '_cleaned.csv'
     clean_tickers(input_file, output_file)
