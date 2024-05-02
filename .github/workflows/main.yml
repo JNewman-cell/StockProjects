@@ -20,7 +20,11 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
+    - name: Delete existing dataset files (if any)
+      run: |
+        rm -f nyse_tickers.txt nasdaq_tickers.txt
+
     - name: Pull NYSE tickers
       run: |
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_tickers.txt -O nyse_tickers.txt
@@ -49,15 +53,10 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Copy text files
-      run: |
-        cp ../update-tickers/nyse_tickers.txt .
-        cp ../update-tickers/nasdaq_tickers.txt .
-
     - name: Run Python script to clean tickers
       run: |
-        python clean_datasets.py nyse_tickers.txt
-        python clean_datasets.py nasdaq_tickers.txt
+        python clean_datasets.py update-tickers/nyse_tickers.txt
+        python clean_datasets.py update-tickers/nasdaq_tickers.txt
 
     - name: Add cleaned dataset CSVs
       run: |
