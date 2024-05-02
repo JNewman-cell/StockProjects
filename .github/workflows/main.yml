@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
-  update-tickers:
+  update-tickers-and-clean-datasets:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,10 +20,6 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Delete existing dataset files (if any)
-      run: |
-        rm -f nyse_tickers.txt nasdaq_tickers.txt
 
     - name: Pull NYSE tickers
       run: |
@@ -33,21 +29,6 @@ jobs:
       run: |
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_tickers.txt -O nasdaq_tickers.txt
 
-  clean-datasets:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
-
-    steps:
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
     - name: Install Python
       uses: actions/setup-python@v2
       with:
@@ -55,16 +36,13 @@ jobs:
 
     - name: Run Python script to clean tickers
       run: |
-        python $GITHUB_WORKSPACE/StockTickers/clean_datasets.py nyse_tickers.txt
-        python $GITHUB_WORKSPACE/StockTickers/clean_datasets.py nasdaq_tickers.txt
+        python StockTickers/clean_datasets.py nyse_tickers.txt
+        python StockTickers/clean_datasets.py nasdaq_tickers.txt
 
-    - name: Add cleaned dataset CSVs
-      run: |
-        git add $GITHUB_WORKSPACE/StockTickers/nyse_tickers_cleaned.csv $GITHUB_WORKSPACE/StockTickers/nasdaq_tickers_cleaned.csv
-
-    - name: Commit and push changes
+    - name: Add and commit cleaned dataset CSVs
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
+        git add .
         git commit -m "Add cleaned dataset CSVs"
         git push origin main
