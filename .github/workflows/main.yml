@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
-  pull-tickers:
+  update-tickers:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,6 +43,13 @@ jobs:
         git commit -m "Update NASDAQ tickers"
         git push
 
+  clean-datasets:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
     - name: Install Python
       uses: actions/setup-python@v2
       with:
