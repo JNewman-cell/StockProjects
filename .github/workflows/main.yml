@@ -39,13 +39,10 @@ jobs:
         python StockTickers/clean_datasets.py nyse_tickers.txt
         python StockTickers/clean_datasets.py nasdaq_tickers.txt
 
-    - name: Add cleaned dataset CSVs
-      run: |
-        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv
-
-    - name: Commit and push changes
+    - name: Add and commit cleaned dataset CSVs
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
+        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv
         git commit -m "Add cleaned dataset CSVs"
         git push origin main
