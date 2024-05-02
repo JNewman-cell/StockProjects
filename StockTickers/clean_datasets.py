@@ -1,6 +1,7 @@
 import csv
 import time
 
+
 def clean_tickers(input_file, output_file):
     start_time = time.time()
 
