@@ -8,7 +8,7 @@ def get_market_cap(ticker):
         return info.get('marketCap', 'N/A')
     except Exception as e:
         print(f"Error fetching market cap for {ticker}: {e}")
-        return 'N/A'
+        return '0'
 
 def clean_tickers(input_file, output_file):
     start_time = time.time()
