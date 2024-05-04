@@ -37,6 +37,8 @@ def clean_tickers(input_file, output_file):
 	        next(reader)
 	        nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
+	print(nonexistent_market_caps)
+	
 	# Use fetch_market_caps to fetch market caps in parallel
 	market_caps = fetch_market_caps(tickers, nonexistent_market_caps)
 	market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})
