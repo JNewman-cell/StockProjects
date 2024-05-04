@@ -13,7 +13,7 @@ def get_market_cap(ticker):
         return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
         futures = {executor.submit(get_market_cap, ticker): ticker for ticker in tickers if ticker not in nonexistent_market_caps}
         market_caps = {}
         for future in concurrent.futures.as_completed(futures):
@@ -31,20 +31,17 @@ def clean_tickers(input_file, output_file):
 
 	nonexistent_market_caps = []
 	# use this for later iterations to speed up fetching, removing tickers that aren't in database
-	# if os.path.exists(output_file):
-	#     with open(output_file, 'r') as csvfile:
-	#         reader = csv.reader(csvfile)
-	#         next(reader)
-	#         nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
+	if os.path.exists(output_file):
+	    with open(output_file, 'r') as csvfile:
+	        reader = csv.reader(csvfile)
+	        next(reader)
+	        nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
 	# Use fetch_market_caps to fetch market caps in parallel
-	market_caps = fetch_market_caps(tickers, nonexistent_market_caps)
+	market_caps = fetch_market_caps([], nonexistent_market_caps)
 	market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})
 
-	print(market_caps)
 	sorted_ticker_market_cap_pairs = sorted(market_caps.items(), key=lambda x: x[0])
-
-	print(sorted_ticker_market_cap_pairs)
 
 	end_time_market_cap_fetching = time.time()
 
