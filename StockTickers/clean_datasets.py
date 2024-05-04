@@ -13,55 +13,56 @@ def get_market_cap(ticker):
         return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
         futures = {executor.submit(get_market_cap, ticker): ticker for ticker in tickers if ticker not in nonexistent_market_caps}
         market_caps = {}
         for future in concurrent.futures.as_completed(futures):
             ticker = futures[future]
-            market_caps[ticker] = future.result()
+            market_caps[ticker] = future.result()[1]
     return market_caps
 
 def clean_tickers(input_file, output_file):
-    start_time = time.time()
+	start_time = time.time()
 
-    with open(input_file, 'r') as f:
-        tickers = {line.strip() for line in f if line.strip()}
+	with open(input_file, 'r') as f:
+	    tickers = {line.strip() for line in f if line.strip()}
 
-    end_time_read = time.time()
+	end_time_read = time.time()
 
-    nonexistent_market_caps = []
-    if os.path.exists(output_file):
-        with open(output_file, 'r') as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)
-            nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
+	nonexistent_market_caps = []
+	if os.path.exists(output_file):
+	    with open(output_file, 'r') as csvfile:
+	        reader = csv.reader(csvfile)
+	        next(reader)
+	        nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
-    # Use fetch_market_caps to fetch market caps in parallel
-    market_caps = fetch_market_caps(tickers, nonexistent_market_caps)
-    market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})  # Add existing market caps
+	# Use fetch_market_caps to fetch market caps in parallel
+	market_caps = fetch_market_caps(['AAPL','GOOGL', 'MSFT'], nonexistent_market_caps)
+	market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})
 
-    sorted_ticker_market_cap_pairs = sorted(market_caps.items(), key=lambda x: x[0])
+	print(market_caps)
+	sorted_ticker_market_cap_pairs = sorted(market_caps.items(), key=lambda x: x[0])
 
-    print(sorted_ticker_market_cap_pairs)
+	print(sorted_ticker_market_cap_pairs)
 
-    end_time_market_cap_fetching = time.time()
+	end_time_market_cap_fetching = time.time()
 
-    with open(output_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Ticker', 'Market Cap'])
-        writer.writerows(sorted_ticker_market_cap_pairs)
+	with open(output_file, 'w', newline='') as csvfile:
+		writer = csv.writer(csvfile)
+		writer.writerow(['Ticker', 'Market Cap'])
+		writer.writerows(sorted_ticker_market_cap_pairs)
 
-    end_time_write = time.time()
+	end_time_write = time.time()
 
-    duration_read = (end_time_read - start_time) * 1000
-    duration_market_cap_fetching = (end_time_market_cap_fetching - end_time_read)
-    duration_write = (end_time_write - end_time_market_cap_fetching) * 1000
-    total_duration = (duration_read + duration_market_cap_fetching + duration_write)
+	duration_read = (end_time_read - start_time) * 1000
+	duration_market_cap_fetching = (end_time_market_cap_fetching - end_time_read)
+	duration_write = (end_time_write - end_time_market_cap_fetching) * 1000
+	total_duration = (duration_read + duration_market_cap_fetching + duration_write)
 
-    print(f"Reading tickers took {duration_read:.2f} milliseconds")
-    print(f"Fetching market caps took {duration_market_cap_fetching:.2f} seconds")
-    print(f"Writing tickers with market cap took {duration_write:.2f} milliseconds")
-    print(f"Total cleaning time: {total_duration:.2f} milliseconds")
+	print(f"Reading tickers took {duration_read:.2f} milliseconds")
+	print(f"Fetching market caps took {duration_market_cap_fetching:.2f} seconds")
+	print(f"Writing tickers with market cap took {duration_write:.2f} milliseconds")
+	print(f"Total cleaning time: {total_duration:.2f} milliseconds")
 
 if __name__ == "__main__":
     import sys

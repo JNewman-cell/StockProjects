@@ -1,4 +1,5 @@
 Ticker,Market Cap
+<<<<<<< Updated upstream
 AACG,"('AACG', 'N/A')"
 AACI,"('AACI', 94855984)"
 AACIW,N/A
@@ -4059,3 +4060,8 @@ ZVRA,"('ZVRA', 201300896)"
 ZVSA,"('ZVSA', 4139198)"
 ZYME,"('ZYME', 650485056)"
 ZYXI,"('ZYXI', 349527200)"
+=======
+AAPL,"('AAPL', 2811967307776)"
+GOOGL,"('GOOGL', 2076585623552)"
+MSFT,"('MSFT', 3022423064576)"
+>>>>>>> Stashed changes
