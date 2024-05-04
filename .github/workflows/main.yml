@@ -30,7 +30,7 @@ jobs:
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_tickers.txt -O nasdaq_tickers.txt
 
     - name: Install Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
