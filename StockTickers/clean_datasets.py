@@ -31,14 +31,14 @@ def clean_tickers(input_file, output_file):
 
 	nonexistent_market_caps = []
 	# use this for later iterations to speed up fetching, removing tickers that aren't in database
-	if os.path.exists(output_file):
-	    with open(output_file, 'r') as csvfile:
-	        reader = csv.reader(csvfile)
-	        next(reader)
-	        nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
+	# if os.path.exists(output_file):
+	#     with open(output_file, 'r') as csvfile:
+	#         reader = csv.reader(csvfile)
+	#         next(reader)
+	#         nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
 	print(nonexistent_market_caps)
-	
+
 	# Use fetch_market_caps to fetch market caps in parallel
 	market_caps = fetch_market_caps(tickers, nonexistent_market_caps)
 	market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})
