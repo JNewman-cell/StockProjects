@@ -29,18 +29,20 @@ def clean_tickers(input_file, output_file):
 
     end_time_read = time.time()
 
-    nonexistent_market_caps = {}
+    nonexistent_market_caps = []
     if os.path.exists(output_file):
         with open(output_file, 'r') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)
-            nonexistent_market_caps = {row[0]: row[1] for row in reader if row[1] == 'N/A'}
+            nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
     # Use fetch_market_caps to fetch market caps in parallel
     market_caps = fetch_market_caps(tickers, nonexistent_market_caps)
-    market_caps.update(nonexistent_market_caps)  # Add existing market caps
+    market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})  # Add existing market caps
 
     sorted_ticker_market_cap_pairs = sorted(market_caps.items(), key=lambda x: x[0])
+
+    print(sorted_ticker_market_cap_pairs)
 
     end_time_market_cap_fetching = time.time()
 
