@@ -4,7 +4,7 @@ import os
 import concurrent.futures
 import yfinance as yf
 
-unnacounted_tickers = 0
+
 
 def get_market_cap(ticker):
 	try:
@@ -12,7 +12,6 @@ def get_market_cap(ticker):
 		return (ticker, info.get('marketCap', 'N/A'))
 	except Exception as e:
 		print(f"Error fetching market cap for {ticker}: {e}")
-		unnacounted_tickers+=1
 		return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
@@ -27,6 +26,7 @@ def fetch_market_caps(tickers, nonexistent_market_caps):
 def clean_tickers(input_file, output_file):
 	start_time = time.time()
 
+	unnacounted_tickers = 0
 	with open(input_file, 'r') as f:
 	    tickers = {line.strip() for line in f if line.strip()}
 
@@ -47,6 +47,7 @@ def clean_tickers(input_file, output_file):
 	market_caps.update({ticker: 'N/A' for ticker in nonexistent_market_caps})
 
 	sorted_ticker_market_cap_pairs = sorted(market_caps.items(), key=lambda x: x[0])
+	unnacounted_tickers = sum(1 for ticker, market_cap in market_caps.items() if market_cap == 'N/A')
 
 	end_time_market_cap_fetching = time.time()
 
