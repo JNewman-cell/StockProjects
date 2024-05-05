@@ -67,7 +67,7 @@ def clean_tickers(input_file, output_file):
 	print(f"Fetching market caps took {duration_market_cap_fetching:.2f} seconds")
 	print(f"Writing tickers with market cap took {duration_write:.2f} milliseconds")
 	print(f"Total cleaning time: {total_duration:.2f} milliseconds")
-	print("Number of N/A tickers"+str(unnacounted_tickers))
+	print("Number of N/A tickers: "+str(unnacounted_tickers))
 
 if __name__ == "__main__":
     import sys
