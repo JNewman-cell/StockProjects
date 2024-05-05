@@ -13,7 +13,7 @@ def get_market_cap(ticker):
 		return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(get_market_cap, ticker): ticker for ticker in tickers if ticker not in nonexistent_market_caps}
         market_caps = {}
         for future in concurrent.futures.as_completed(futures):
