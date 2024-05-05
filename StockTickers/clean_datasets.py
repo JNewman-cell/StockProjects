@@ -13,7 +13,7 @@ def get_market_cap(ticker):
 		return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         futures = {executor.submit(get_market_cap, ticker): ticker for ticker in tickers if ticker not in nonexistent_market_caps}
         market_caps = {}
         for future in concurrent.futures.as_completed(futures):
@@ -32,11 +32,11 @@ def clean_tickers(input_file, output_file):
 
 	nonexistent_market_caps = []
 	# use this for later iterations to speed up fetching, removing tickers that aren't in database
-	# if os.path.exists(output_file):
-	#     with open(output_file, 'r') as csvfile:
-	#         reader = csv.reader(csvfile)
-	#         next(reader)
-	#         nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
+	if os.path.exists(output_file):
+	    with open(output_file, 'r') as csvfile:
+	        reader = csv.reader(csvfile)
+	        next(reader)
+	        nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
 	print(nonexistent_market_caps)
 
