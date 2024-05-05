@@ -4,16 +4,19 @@ import os
 import concurrent.futures
 import yfinance as yf
 
+unnacounted_tickers = 0
+
 def get_market_cap(ticker):
     try:
         info = yf.Ticker(ticker).info
         return (ticker, info.get('marketCap', 'N/A'))
     except Exception as e:
         print(f"Error fetching market cap for {ticker}: {e}")
+		unnacounted_tickers+=1
         return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(get_market_cap, ticker): ticker for ticker in tickers if ticker not in nonexistent_market_caps}
         market_caps = {}
         for future in concurrent.futures.as_completed(futures):
@@ -63,6 +66,7 @@ def clean_tickers(input_file, output_file):
 	print(f"Fetching market caps took {duration_market_cap_fetching:.2f} seconds")
 	print(f"Writing tickers with market cap took {duration_write:.2f} milliseconds")
 	print(f"Total cleaning time: {total_duration:.2f} milliseconds")
+	print("Number of N/A tickers"+str(unnacounted_tickers))
 
 if __name__ == "__main__":
     import sys
