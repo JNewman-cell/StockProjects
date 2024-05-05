@@ -7,13 +7,13 @@ import yfinance as yf
 unnacounted_tickers = 0
 
 def get_market_cap(ticker):
-    try:
-        info = yf.Ticker(ticker).info
-        return (ticker, info.get('marketCap', 'N/A'))
-    except Exception as e:
-        print(f"Error fetching market cap for {ticker}: {e}")
+	try:
+		info = yf.Ticker(ticker).info
+		return (ticker, info.get('marketCap', 'N/A'))
+	except Exception as e:
+		print(f"Error fetching market cap for {ticker}: {e}")
 		unnacounted_tickers+=1
-        return (ticker, 'N/A')
+		return (ticker, 'N/A')
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
