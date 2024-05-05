@@ -4,8 +4,6 @@ import os
 import concurrent.futures
 import yfinance as yf
 
-
-
 def get_market_cap(ticker):
 	try:
 		info = yf.Ticker(ticker).info
@@ -34,11 +32,11 @@ def clean_tickers(input_file, output_file):
 
 	nonexistent_market_caps = []
 	# use this for later iterations to speed up fetching, removing tickers that aren't in database
-	# if os.path.exists(output_file):
-	#     with open(output_file, 'r') as csvfile:
-	#         reader = csv.reader(csvfile)
-	#         next(reader)
-	#         nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
+	if os.path.exists(output_file):
+	    with open(output_file, 'r') as csvfile:
+	        reader = csv.reader(csvfile)
+	        next(reader)
+	        nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
 
 	print(nonexistent_market_caps)
 
