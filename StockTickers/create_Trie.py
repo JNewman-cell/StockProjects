@@ -1,4 +1,5 @@
 import csv
+import pickle
 
 class TrieNode:
 	def __init__(self):
@@ -42,34 +43,32 @@ class Trie:
 			else:
 				next_highest_market_cap.extend(self._collect_tickers(child_node, child_prefix))
 
-		# Sort true prefix match by frequency (descending order)
-		true_prefix_match.sort(key=lambda x: x[1], reverse=True)
-
 		# Sort next highest market cap tickers by market cap (ascending order)
 		next_highest_market_cap.sort(key=lambda x: x[1], reverse=True)
 
 		# Combine and return the lists (true prefix match + next highest market cap)
 		return true_prefix_match + next_highest_market_cap[:9]
 
-# Create an instance of Trie
-trie = Trie()
+def build_and_save_trie():
+	trie = Trie()
 
-# Read ticker symbols and frequencies from CSV file
-with open('StockTickers/nasdaq_tickers_cleaned.csv', 'r') as csvfile:
-	reader = csv.DictReader(csvfile)
-	for row in reader:
-		ticker = row['Ticker']
-		frequency = row['Market Cap']
-		if frequency != 'N/A':
-			trie.insert_with_frequency(ticker, int(frequency))
+	# Read ticker symbols and frequencies from CSV file
+	with open('StockTickers/nasdaq_tickers_cleaned.csv', 'r') as csvfile:
+		reader = csv.DictReader(csvfile)
+		for row in reader:
+			ticker = row['Ticker']
+			frequency = row['Market Cap']
+			if frequency != 'N/A':
+				trie.insert_with_frequency(ticker, int(frequency))
 
-with open('StockTickers/nyse_tickers_cleaned.csv', 'r') as csvfile:
-	reader = csv.DictReader(csvfile)
-	for row in reader:
-		ticker = row['Ticker']
-		frequency = row['Market Cap']
-		if frequency != 'N/A':
-			trie.insert_with_frequency(ticker, int(frequency))
+	with open('StockTickers/nyse_tickers_cleaned.csv', 'r') as csvfile:
+		reader = csv.DictReader(csvfile)
+		for row in reader:
+			ticker = row['Ticker']
+			frequency = row['Market Cap']
+			if frequency != 'N/A':
+				trie.insert_with_frequency(ticker, int(frequency))
 
-# Search for tickers with prefix "A"
-print(trie.search("A"))
+	# Save the Trie to a file
+	with open('StockTickers/trie.pkl', 'wb') as f:
+		pickle.dump(trie, f)
