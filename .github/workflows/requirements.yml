@@ -26,7 +26,8 @@ jobs:
   
       - name: Commit changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --global user.email "jpnewman167@gmail.com"
+          git config --global user.name "JNewman-cell"
           git add requirements.txt
-          git commit -m "Update requirements.txt" || echo "No changes to commit"
+          git commit -m "Add cleaned dataset CSVs and Trie pickle"
+          git push origin main
