@@ -68,5 +68,5 @@ with open('StockTickers/nyse_tickers_cleaned.csv', 'r') as csvfile:
 			trie.insert_with_frequency(ticker, int(frequency))
 
 # Save the Trie to a file
-with open('StockTickers/trie.pkl', 'wb') as f:
+with open('FlaskApp/trie.pkl', 'wb') as f:
 	pickle.dump(trie, f)
