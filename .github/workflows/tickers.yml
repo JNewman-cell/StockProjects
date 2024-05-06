@@ -49,6 +49,6 @@ jobs:
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
-        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv StockTickers/trie.pkl
+        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv FlaskApp/trie.pkl
         git commit -m "Add cleaned dataset CSVs and Trie pickle"
         git push origin main
