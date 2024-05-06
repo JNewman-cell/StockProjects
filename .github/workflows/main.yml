@@ -41,10 +41,14 @@ jobs:
         python StockTickers/clean_datasets.py nyse_tickers.txt
         python StockTickers/clean_datasets.py nasdaq_tickers.txt
 
+    - name: Run Python script to create Trie
+      run: |
+        python StockTickers/create_Trie.py
+
     - name: Add and commit cleaned dataset CSVs
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
-        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv
+        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv StockTickers/trie.pkl
         git commit -m "Add cleaned dataset CSVs"
         git push origin main
