@@ -1,4 +1,4 @@
-name: Pull and Clean Tickers
+name: Pull and Clean Tickers and Make Trie Autocomplete
 
 on:
   schedule:
