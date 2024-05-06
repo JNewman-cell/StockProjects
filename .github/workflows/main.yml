@@ -36,16 +36,16 @@ jobs:
         cache: 'pip' # caching pip dependencies
     - run: pip install -r requirements.txt
 
-    - name: Run Python script to clean tickers
+    - name: Clean tickers and retrieve market caps
       run: |
         python StockTickers/clean_datasets.py nyse_tickers.txt
         python StockTickers/clean_datasets.py nasdaq_tickers.txt
 
-    - name: Run Python script to create Trie
+    - name: Create Trie for autocomplete of tickers
       run: |
         python StockTickers/create_Trie.py
 
-    - name: Add and commit cleaned dataset CSVs
+    - name: Add and commit cleaned dataset CSVs and Trie
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
