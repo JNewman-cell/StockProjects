@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
-  update-tickers-and-clean-datasets:
+  update-tickers-and-clean-datasets-and-make-trie-pickle:
     runs-on: ubuntu-latest
     strategy:
       matrix:
