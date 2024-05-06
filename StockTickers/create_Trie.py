@@ -1,6 +1,5 @@
 import csv
 import pickle
-
 class TrieNode:
 	def __init__(self):
 		self.children = {}
@@ -49,26 +48,25 @@ class Trie:
 		# Combine and return the lists (true prefix match + next highest market cap)
 		return true_prefix_match + next_highest_market_cap[:9]
 
-def build_and_save_trie():
-	trie = Trie()
+trie = Trie()
 
-	# Read ticker symbols and frequencies from CSV file
-	with open('StockTickers/nasdaq_tickers_cleaned.csv', 'r') as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			ticker = row['Ticker']
-			frequency = row['Market Cap']
-			if frequency != 'N/A':
-				trie.insert_with_frequency(ticker, int(frequency))
+# Read ticker symbols and frequencies from CSV file
+with open('StockTickers/nasdaq_tickers_cleaned.csv', 'r') as csvfile:
+	reader = csv.DictReader(csvfile)
+	for row in reader:
+		ticker = row['Ticker']
+		frequency = row['Market Cap']
+		if frequency != 'N/A':
+			trie.insert_with_frequency(ticker, int(frequency))
 
-	with open('StockTickers/nyse_tickers_cleaned.csv', 'r') as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			ticker = row['Ticker']
-			frequency = row['Market Cap']
-			if frequency != 'N/A':
-				trie.insert_with_frequency(ticker, int(frequency))
+with open('StockTickers/nyse_tickers_cleaned.csv', 'r') as csvfile:
+	reader = csv.DictReader(csvfile)
+	for row in reader:
+		ticker = row['Ticker']
+		frequency = row['Market Cap']
+		if frequency != 'N/A':
+			trie.insert_with_frequency(ticker, int(frequency))
 
-	# Save the Trie to a file
-	with open('StockTickers/trie.pkl', 'wb') as f:
-		pickle.dump(trie, f)
+# Save the Trie to a file
+with open('StockTickers/trie.pkl', 'wb') as f:
+	pickle.dump(trie, f)
