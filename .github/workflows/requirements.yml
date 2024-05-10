@@ -21,7 +21,7 @@ jobs:
       - name: Generate requirements.txt
         run: pipreqs . --force
 
-      - name: Check for changes in the database file
+      - name: Check for changes in the requirements file
         run: |
           git diff requirements.txt
   
