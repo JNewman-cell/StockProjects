@@ -2,6 +2,7 @@ import unittest
 import csv
 import pickle
 import itertools
+from concurrent.futures import ThreadPoolExecutor
 
 def generate_combinations(max_length):
     combinations = []
@@ -16,6 +17,7 @@ class TrieNode:
     def __init__(self):
         self.children = {}
         self.frequency = 0
+
 class Trie:
     def __init__(self):
         self.root = TrieNode()
@@ -61,6 +63,7 @@ class Trie:
 
 class TestTrie(unittest.TestCase):
     tickers_and_market_cap = []
+
     def setUp(self):
         combined_data = {}
 
@@ -92,11 +95,17 @@ class TestTrie(unittest.TestCase):
     def test_trie(self):
         max_length = 5
         combinations = generate_combinations(max_length)
-        for c in combinations:
-            prefix = c
-            expected = self.get_expected_tickers(prefix)
-            result = self.trie.search(prefix)
-            self.assertEqual(result, expected, f"Incorrect result for prefix '{prefix}'")
+        
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(self.run_test_case, combinations))
+        
+        for result in results:
+            self.assertIsNone(result)
+
+    def run_test_case(self, prefix):
+        expected = self.get_expected_tickers(prefix)
+        result = self.trie.search(prefix)
+        self.assertEqual(result, expected, f"Incorrect result for prefix '{prefix}'")
 
     def get_expected_tickers(self, prefix):
         expected = []
@@ -118,7 +127,6 @@ class TestTrie(unittest.TestCase):
             return None
         else:
             return expected
-       
 
 if __name__ == '__main__':
     unittest.main()
