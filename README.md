@@ -1,6 +1,6 @@
 # StockProjects
 
-## Update requirements.tx:
+## Update requirements.txt:
 
 [![Keep requirements.txt Updated](https://github.com/JNewman-cell/StockProjects/actions/workflows/requirements.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/requirements.yml)
 
