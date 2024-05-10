@@ -78,8 +78,8 @@ def graphs():
 	cursor = conn.cursor()
 	cursor.execute("SELECT year, revenue, ebitda, fcf, sbc, net_income, eps, cash, debt, shares_outstanding FROM stocks WHERE ticker = ? ORDER BY year", (ticker,))
 	data = cursor.fetchall()
-	print(ticker)
-	print(data)
+	# print(ticker)
+	# print(data)
 	conn.close()
 	return jsonify(data)
 

@@ -10,10 +10,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
     <!-- Include Chart.js library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+        .change {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="row justify-content-center"> <!-- Center the search box -->
+        <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="ticker">Search Ticker:</label>
@@ -24,44 +33,51 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-3">
-			<div class="col-md-6">
-				<canvas id="RevenueGraph" width="400" height="300"></canvas>
+		<div class="row justify-content-center" id="error-message"></div>
+        <div class="row mt-3" width="100%">
+			<div class="col-md-4">
+				<canvas id="RevenueGraph" width="100" height="100"></canvas>
+				<div id="RevenueChange1yr" class="change"></div>
+				<div id="RevenueChange2yr" class="change"></div>
+				<div id="RevenueChangemax" class="change"></div>
 			</div>
-			<div class="col-md-6">
-				<canvas id="EBITDAGraph" width="400" height="300"></canvas>
+			<div class="col-md-4">
+				<canvas id="EBITDAGraph" width="100" height="100"></canvas>
+				<div id="EBITDAChange1yr" class="change"></div>
+				<div id="EBITDAChange2yr" class="change"></div>
+				<div id="EBITDAChangemax" class="change"></div>
 			</div>
-		</div>
-		<div class="row mt-3">
-			<div class="col-md-6">
-				<canvas id="FCFGraph" width="400" height="300"></canvas>
-			</div>
-			<div class="col-md-6">
-				<canvas id="SBCGraph" width="400" height="300"></canvas>
-			</div>
-		</div>
-		<div class="row mt-3">
-			<div class="col-md-6">
-				<canvas id="Net IncomeGraph" width="400" height="300"></canvas>
-			</div>
-			<div class="col-md-6">
-				<canvas id="EPSGraph" width="400" height="300"></canvas>
+			<div class="col-md-4">
+				<canvas id="Net IncomeGraph" width="100" height="100"></canvas>
+				<div id="Net IncomeChange1yr" class="change"></div>
+				<div id="Net IncomeChange2yr" class="change"></div>
+				<div id="Net IncomeChangemax" class="change"></div>
 			</div>
 		</div>
 		<div class="row mt-3">
-			<div class="col-md-6">
-				<canvas id="CashGraph" width="400" height="300"></canvas>
+			<div class="col-md-4">
+				<canvas id="EPSGraph" width="100" height="100"></canvas>
+				<div id="EPSChange1yr" class="change"></div>
+				<div id="EPSChange2yr" class="change"></div>
+				<div id="EPSChangemax" class="change"></div>
 			</div>
-			<div class="col-md-6">
-				<canvas id="DebtGraph" width="400" height="300"></canvas>
+			<div class="col-md-4">
+				<canvas id="FCFSBCGraph" width="100" height="100"></canvas>
+			</div>
+			<div class="col-md-4">
+				<!-- <canvas id="SBCGraph" width="400" height="300"></canvas> -->
+				<canvas id="CashDebtGraph" width="100" height="100"></canvas>
 			</div>
 		</div>
 		<div class="row mt-3">
-			<div class="col-md-6">
-				<canvas id="Shares OutstandingGraph" width="400" height="300"></canvas>
+			<div class="col-md-4">
+				<canvas id="Shares OutstandingGraph" width="100" height="100"></canvas>
+				<div id="Shares OutstandingChange1yr" class="change"></div>
+				<div id="Shares OutstandingChange2yr" class="change"></div>
+				<div id="Shares OutstandingChangemax" class="change"></div>
 			</div>
 		</div>
-
+		<div class="row mb-5"></div>
     </div>
 
     <script>
@@ -90,44 +106,56 @@
             // Fetch financial data for the selected ticker
             $.getJSON('/graphs', {ticker: selectedTicker})
             .done(function(data) {
-                var years = [];
-				var revenues = [];
-				var ebitdas = [];
-				var fcfs = [];
-				var sbcs = [];
-				var net_incomes = [];
-				var epss = [];
-				var cashs = [];
-				var debts = [];
-				var shares_outstandings = [];
-				if (Array.isArray(data)) {
-					data.forEach(function(item) {
-						if (Array.isArray(item) && item.length >= 10) {
-							years.push(item[0]);
-							revenues.push(item[1]);
-							ebitdas.push(item[2]);
-							fcfs.push(item[3]);
-							sbcs.push(item[4]);
-							net_incomes.push(item[5]);
-							epss.push(item[6]);
-							cashs.push(item[7]);
-							debts.push(item[8]);
-							shares_outstandings.push(item[9]);
-						}
-					});
-					// Draw the bar graphs
-					drawGraph('Revenue', years, revenues);
-					drawGraph('EBITDA', years, ebitdas);
-					drawGraph('FCF', years, fcfs);
-					drawGraph('SBC', years, sbcs);
-					drawGraph('Net Income', years, net_incomes);
-					drawGraph('EPS', years, epss);
-					drawGraph('Cash', years, cashs);
-					drawGraph('Debt', years, debts);
-					drawGraph('Shares Outstanding', years, shares_outstandings);
-				} else {
-					console.error('Invalid data format:', data);
+				var errorMessageElement = document.getElementById('error-message');
+
+				if (data.length === 0) {
+					// Display error message in HTML
+					errorMessageElement.innerText = "There is no data for the ticker: " + selectedTicker + ", sorry for the inconvenience";
 				}
+				else{
+					errorMessageElement.innerText = ""
+					var years = [];
+					var revenues = [];
+					var ebitdas = [];
+					var fcfs = [];
+					var sbcs = [];
+					var net_incomes = [];
+					var epss = [];
+					var cashs = [];
+					var debts = [];
+					var shares_outstandings = [];
+					if (Array.isArray(data)) {
+						data.forEach(function(item) {
+							if (Array.isArray(item) && item.length >= 10) {
+								years.push(item[0]);
+								revenues.push(item[1]);
+								ebitdas.push(item[2]);
+								fcfs.push(item[3]);
+								sbcs.push(item[4]);
+								net_incomes.push(item[5]);
+								epss.push(item[6]);
+								cashs.push(item[7]);
+								debts.push(item[8]);
+								shares_outstandings.push(item[9]);
+							}
+						});
+						// Draw the bar graphs
+						drawGraph('Revenue', years, revenues);
+						drawGraph('EBITDA', years, ebitdas, 'orange');
+						drawCashandDebtGraph('FCF','SBC', years, fcfs, sbcs, 'orange', 'blue')
+						// drawGraph('FCF', years, fcfs, 'orange');
+						// drawGraph('SBC', years, sbcs, 'green');
+						drawGraph('Net Income', years, net_incomes, 'green');
+						drawGraph('EPS', years, epss, 'yellow');
+						drawCashandDebtGraph('Cash','Debt', years, cashs, debts, 'green', 'red')
+						// drawGraph('Cash', years, cashs, 'red');
+						// drawGraph('Debt', years, debts, 'green');
+						drawGraph('Shares Outstanding', years, shares_outstandings);
+					} else {
+						console.error('Invalid data format:', data);
+					}
+				}
+				
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
                 console.error('Error fetching data:', textStatus, errorThrown);
@@ -136,60 +164,65 @@
 
     });
 
+	function calculateChange(data, index) {
+		var max = data.length
+        var change1yr = ((data[index] - data[index-1]) / data[index-1]) * 100;
+		var change2yr = ((data[index] - data[index-2]) / data[index-2]) * 100;
+        var changemax = ((data[index] - data[index-max+1]) / data[index-max+1]) * 100;
+        return {
+            '1yr': change1yr.toFixed(2),
+			'2yr': change2yr.toFixed(2),
+            'max': changemax.toFixed(2)
+        };
+    }
+
     // Function to draw the graph
-	function drawGraph(label, years, data, color = 'rgba(54, 162, 235, 1)') {
-		var ctx = document.getElementById(label + 'Graph').getContext('2d');
+	function drawGraph(label, years, data, color = 'blue') {
+		chartColors = {
+			'red': 'rgb(255, 80, 100)',
+			'orange': 'rgb(255, 159, 64)',
+			'yellow': 'rgb(255, 205, 86)',
+			'green': 'rgb(50, 180, 50)',
+			'blue': 'rgb(54, 162, 235)'
+		};
+		var ctx = document.getElementById(label + 'Graph');
 		// Check if a chart instance exists for the canvas
-		if (window[label + 'Chart'] instanceof Chart) {
-			// Destroy the existing chart
-			window[label + 'Chart'].destroy();
+		var existingChart = Chart.getChart(ctx);
+		if (existingChart) {
+			// Destroy the existing chart instance
+			existingChart.destroy();
 		}
-		window[label + 'Chart'] = new Chart(ctx, {
+		new Chart(ctx, {
 			type: 'bar',
 			data: {
 				labels: years,
 				datasets: [{
 					label: label,
 					data: data,
-					backgroundColor: color,
+					backgroundColor: chartColors[color],
 					borderWidth: 0
 				}]
 			},
 			options: {
-				legend: { display: false },
-				title: {
-					display: true,
-					text: label
-				},
-				scales: {
-					y: {
-						ticks: {
-							beginAtZero: true,
-							callback: function(value, index, values) {
-								if (value >= 1e9) {
-									return (value / 1e9).toFixed(1) + 'b';
-								} else if (value >= 1e6) {
-									return (value / 1e6).toFixed(1) + 'm';
-								} else if (value >= 1e3) {
-									return (value / 1e3).toFixed(1) + 'k';
-								} else {
-									return value;
-								}
-							}
-						}
-					}
-				},
 				plugins: {
+					legend: { display: false },
+					title: {
+						display: true,
+						text: label,
+						font: {
+							size: 20,
+						},
+					},
 					tooltip: {
 						callbacks: {
 							label: function(context) {
 								var label = context.dataset.label || '';
 								var value = context.parsed.y;
-								if (value >= 1e9) {
+								if (value >= 1e9 || value <= -1e9) {
 									return label + ': ' + (value / 1e9).toFixed(1) + 'b';
-								} else if (value >= 1e6) {
+								} else if (value >= 1e6 || value <= -1e6) {
 									return label + ': ' + (value / 1e6).toFixed(1) + 'm';
-								} else if (value >= 1e3) {
+								} else if (value >= 1e3 || value <= -1e3) {
 									return label + ': ' + (value / 1e3).toFixed(1) + 'k';
 								} else {
 									return label + ': ' + value;
@@ -197,11 +230,154 @@
 							}
 						}
 					}
-				}
+				},
+				scales: {
+					y: {
+						ticks: {
+							beginAtZero: false, // Allow negative values
+							font: {
+								size: 16
+							},
+							callback: function(value, index, values) {
+								if (value >= 1e9 || value <= -1e9) {
+									return (value / 1e9).toFixed(1) + 'b';
+								} else if (value >= 1e6 || value <= -1e6) {
+									return (value / 1e6).toFixed(1) + 'm';
+								} else if (value >= 1e3 || value <= -1e3) {
+									return (value / 1e3).toFixed(1) + 'k';
+								} else {
+									return value;
+								}
+							}
+						}
+					},
+					x: {
+						ticks: {
+							font: {
+								size: 16
+							},
+						}
+					}
+				},
 			}           
 		});
+		var change = calculateChange(data, data.length - 1);
+
+		var change = calculateChange(data, data.length - 1);
+
+		// Update the HTML elements with the calculated change
+		var changeElement1yr = document.getElementById(label + 'Change1yr');
+		var changeElement2yr = document.getElementById(label + 'Change2yr');
+		var changeElement4yr = document.getElementById(label + 'Changemax');
+		if (label == "Shares Outstanding"){
+			changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+			changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
+			changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+			changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
+			changeElement4yr.innerText = 'Max change: ' + change['max'] + '%';
+			changeElement4yr.style.backgroundColor = change['max'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
+		}
+		else {
+			changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+			changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+			changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+			changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+			changeElement4yr.innerText = 'Max change: ' + change['max'] + '%';
+			changeElement4yr.style.backgroundColor = change['max'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+		}
+		
 	}
 
+	function drawCashandDebtGraph(label1, label2, years, data1, data2, color1 = 'blue', color2 = 'red') {
+		chartColors = {
+			'red': 'rgb(255, 80, 100)',
+			'orange': 'rgb(255, 159, 64)',
+			'yellow': 'rgb(255, 205, 86)',
+			'green': 'rgb(50, 180, 50)',
+			'blue': 'rgb(54, 162, 235)'
+		};
+		var ctx = document.getElementById(label1+label2+'Graph').getContext('2d');
+		// Check if a chart instance exists for the canvas
+		var existingChart = Chart.getChart(ctx);
+		if (existingChart) {
+			// Destroy the existing chart instance
+			existingChart.destroy();
+		}
+		new Chart(ctx, {
+			type: 'bar',
+			data: {
+				labels: years,
+				datasets: [{
+					label: label1,
+					data: data1,
+					backgroundColor: chartColors[color1],
+					borderWidth: 0
+				},
+				{
+					label: label2,
+					data: data2,
+					backgroundColor: chartColors[color2],
+					borderWidth: 0
+				}]
+			},
+			options: {
+				plugins: {
+					title: {
+						display: true,
+						text: label1+' and '+label2,
+						font: {
+							size: 20,
+						},
+					},
+					tooltip: {
+						callbacks: {
+							label: function(context) {
+								var label = context.dataset.label || '';
+								var value = context.parsed.y;
+								if (value >= 1e9 || value <= -1e9) {
+									return label + ': ' + (value / 1e9).toFixed(1) + 'b';
+								} else if (value >= 1e6 || value <= -1e6) {
+									return label + ': ' + (value / 1e6).toFixed(1) + 'm';
+								} else if (value >= 1e3 || value <= -1e3) {
+									return label + ': ' + (value / 1e3).toFixed(1) + 'k';
+								} else {
+									return label + ': ' + value;
+								}
+							}
+						}
+					}
+				},
+				scales: {
+					y: {
+						ticks: {
+							beginAtZero: false, // Allow negative values
+							font: {
+								size: 16
+							},
+							callback: function(value, index, values) {
+								if (value >= 1e9 || value <= -1e9) {
+									return (value / 1e9).toFixed(1) + 'b';
+								} else if (value >= 1e6 || value <= -1e6) {
+									return (value / 1e6).toFixed(1) + 'm';
+								} else if (value >= 1e3 || value <= -1e3) {
+									return (value / 1e3).toFixed(1) + 'k';
+								} else {
+									return value;
+								}
+							}
+						}
+					},
+					x: {
+						ticks: {
+							font: {
+								size: 16
+							},
+						}
+					}
+				},
+			}
+		});
+	}
     </script>
 </body>
 </html>
