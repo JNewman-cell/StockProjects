@@ -4,15 +4,18 @@ import pandas as pd
 from collections import defaultdict
 import csv
 import time
+from datetime import datetime
 
 tickers = []
 
-def extract_SP500_tickers_from_csv(file_path):
-    with open(file_path, newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            tickers.append(row['Ticker'])
-    return tickers
+def extract_tickers_from_csv(file_path):
+	with open(file_path, newline='') as csvfile:
+		reader = csv.DictReader(csvfile)
+		for row in reader:
+			frequency = row['Market Cap']
+			if frequency != 'N/A':
+				tickers.append(row['Ticker'])
+	return tickers
 
 def extract_financial_data(ticker, years):
 	data = {}
@@ -103,7 +106,7 @@ def check_statement(ticker, statement, field):
 	return value
 
 def create_database():
-    conn = sqlite3.connect('financial_data.db')
+    conn = sqlite3.connect('FlaskApp/financial_data.db')
     cursor = conn.cursor()
 
     # Create tables
@@ -119,7 +122,8 @@ def create_database():
                         eps REAL,
                         cash REAL,
                         debt REAL,
-                        shares_outstanding REAL
+                        shares_outstanding REAL,
+                        UNIQUE (ticker, year)
                     )''')
 
     conn.commit()
@@ -140,7 +144,7 @@ def insert_data_into_database(conn, ticker, data):
 def printDB():
     try:
         # Connect to SQLite database
-        conn = sqlite3.connect('financial_data.db')
+        conn = sqlite3.connect('FlaskApp/financial_data.db')
         c = conn.cursor()
 
         # Execute a SELECT query to fetch all rows from the table
@@ -168,25 +172,27 @@ def main():
 	# Create database and get connection
 	conn = create_database()
 
-	# Define tickers and years
+	# Get the tickers from the data
 	csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'
 	csv_file_path2 = 'StockTickers/nyse_tickers_cleaned.csv'
-	extract_SP500_tickers_from_csv(csv_file_path)
-	extract_SP500_tickers_from_csv(csv_file_path2)
-	years = [2020, 2021, 2022, 2023]
+	extract_tickers_from_csv(csv_file_path)
+	extract_tickers_from_csv(csv_file_path2)
+	
+	# create list of years to search for in financial statements
+	current_year = datetime.now().year
+	year_range = list(range(2020, current_year+1))
+	# print(year_range)
 
-	print(tickers)
+	# test ticker set
+	# tickers = ['AAPL', 'GOOGL']
+	# print(len(tickers))
+
 	for ticker in tickers:
-		# Extract financial data
-		data = extract_financial_data(ticker, years)
-
-		# Insert data into database
+		data = extract_financial_data(ticker, year_range)
 		insert_data_into_database(conn, ticker, data)
-
-	# Close the connection
 	conn.close()
 
-	print(errorsPerField)
+	# print(errorsPerField)
 	
 	# printDB()
 

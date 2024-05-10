@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import pickle
 import sqlite3
+import yfinance as yf
 
 class TrieNode:
     def __init__(self):
@@ -65,9 +66,15 @@ def search():
     results = trie.search(prefix.upper())
     return jsonify(results)
 
+@app.route('/companyinfo', methods=['GET'])
+def companyinfo():
+	ticker = request.args.get('ticker')
+	info = yf.Ticker(ticker)
+	return jsonify(info)
+
 # Function to connect to the SQLite database
 def connect_db():
-    conn = sqlite3.connect('financial_data.db')
+    conn = sqlite3.connect('FlaskApp/financial_data.db')
     return conn
 
 # Route to handle graph data request
