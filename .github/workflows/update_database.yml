@@ -31,3 +31,11 @@ jobs:
     - name: Update database information
       run: |
         python StockTickers/create_and_update_database.py
+
+    - name: Add and commit cleaned dataset CSVs and Trie
+      run: |
+        git config --global user.email "jpnewman167@gmail.com"
+        git config --global user.name "JNewman-cell"
+        git add FlaskApp/financial_data.db
+        git commit -m "Add updated financial database"
+        git push origin main
