@@ -1,0 +1,33 @@
+name: Test Custom Trie Autocomplete
+
+on:
+  schedule:
+    - cron: '20 7 * * *'  # Runs every day at 12:20 AM PST
+  workflow_dispatch:  # Enable manual trigger
+
+jobs:
+  update-tickers-and-clean-datasets-and-make-trie-pickle:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
+
+    - name: Create Trie for autocomplete of tickers
+      run: |
+        python StockTickers/test_Trie.py
