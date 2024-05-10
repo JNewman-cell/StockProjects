@@ -1,4 +1,4 @@
-name: Generate requirements.txt
+name: Keep requirements.txt Updated
 
 on:
   push:
