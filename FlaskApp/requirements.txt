@@ -1,0 +1,4 @@
+Flask==2.3.2
+pytz==2023.3
+yfinance==0.2.38
+gunicorn==22.0.0
