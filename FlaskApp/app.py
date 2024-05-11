@@ -11,7 +11,7 @@ from create_Trie import TrieNode, Trie
 
 app = Flask(__name__)
 
-print(os.getcwd()+'/trie.pkl')
+# print(os.getcwd()+'/trie.pkl')
 with open(os.getcwd()+'/trie.pkl', 'rb') as f:
     data = pickle.load(f)
     trie = data['trie']

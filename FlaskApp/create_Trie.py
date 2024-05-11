@@ -48,7 +48,7 @@ class Trie:
 		next_highest_market_cap.sort(key=lambda x: x[1], reverse=True)
 
 		# Combine and return the lists (true prefix match + next highest market cap)
-		return true_prefix_match + next_highest_market_cap[:9]
+		return true_prefix_match + next_highest_market_cap[:4]
 
 trie = Trie()
 

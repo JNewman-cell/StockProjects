@@ -36,7 +36,7 @@
 		<div class="row justify-content-center" id="error-message"></div>
 		<div class="row mt-3">
 			<div class="col-md-6">
-				<canvas id="StockPriceGraph" width="100" height="100"></canvas>
+				<canvas id="Stock PriceGraph" width="100" height="100"></canvas>
 				<div id="PriceChange1yr" class="change"></div>
 				<div id="PriceChange2yr" class="change"></div>
 				<div id="PriceChangemax" class="change"></div>
@@ -95,6 +95,17 @@
 
     <script>
     $(document).ready(function(){
+		 // Draw empty charts
+		drawEmptyChart('Stock PriceGraph');
+		drawEmptyChart('DividendGraph');
+		drawEmptyChart('RevenueGraph');
+		drawEmptyChart('EBITDAGraph');
+		drawEmptyChart('Net IncomeGraph');
+		drawEmptyChart('EPSGraph');
+		drawEmptyChart('FCFSBCGraph');
+		drawEmptyChart('CashDebtGraph');
+		drawEmptyChart('Shares OutstandingGraph');
+
         $('#ticker').on('input', function() {
             var prefix = $(this).val();
             if (prefix.length > 0) {
@@ -179,13 +190,9 @@
 						drawGraph('Revenue', years, revenues);
 						drawGraph('EBITDA', years, ebitdas, 'orange');
 						drawCashandDebtGraph('FCF','SBC', years, fcfs, sbcs, 'orange', 'blue')
-						// drawGraph('FCF', years, fcfs, 'orange');
-						// drawGraph('SBC', years, sbcs, 'green');
 						drawGraph('Net Income', years, net_incomes, 'green');
 						drawGraph('EPS', years, epss, 'yellow');
 						drawCashandDebtGraph('Cash','Debt', years, cashs, debts, 'green', 'red')
-						// drawGraph('Cash', years, cashs, 'red');
-						// drawGraph('Debt', years, debts, 'green');
 						drawGraph('Shares Outstanding', years, shares_outstandings);
 					} else {
 						console.error('Invalid data format:', data);
@@ -280,9 +287,62 @@
 		});
 	}
 
+	function drawEmptyChart(canvasId) {
+		var canvas = document.getElementById(canvasId);
+		if (canvas) {  // Check if the canvas element exists
+			var ctx = canvas.getContext('2d');
+			var label = canvasId.slice(0, -5);
+			new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: [],
+					datasets: [{
+						label: '',
+						data: [],
+						backgroundColor: 'rgba(0, 123, 255, 0.5)',
+						borderColor: 'rgba(0, 123, 255, 1)',
+						borderWidth: 1
+					}]
+				},
+				options: {
+					plugins: {
+						legend: { display: false },
+						title: {
+							display: true,
+							text: label,
+							font: {
+								size: 20,
+							},
+						}
+					},
+					responsive: true,
+					scales: {
+						x: {
+							display: true,
+							title: {
+								display: true,
+								text: 'Year'
+							}
+						},
+						y: {
+							display: true,
+							title: {
+								display: true,
+								text: 'Value'
+							}
+						}
+					}
+				}
+			});
+		} else {
+			console.error('Canvas element not found:', canvasId);
+		}
+	}
+
+
 
 	function drawStockPriceGraph(dates, prices) {
-        var ctx = document.getElementById('StockPriceGraph');
+        var ctx = document.getElementById('Stock PriceGraph');
 		// Check if a chart instance exists for the canvas
 		var existingChart = Chart.getChart(ctx);
 		if (existingChart) {
