@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 import pickle
 import sqlite3
 import yfinance as yf
+import datetime
+import pytz
 
 class TrieNode:
     def __init__(self):
@@ -71,6 +73,34 @@ def companyinfo():
 	ticker = request.args.get('ticker')
 	info = yf.Ticker(ticker)
 	return jsonify(info)
+
+@app.route('/stockprice', methods=['GET'])
+def company_stock_price():
+    ticker = request.args.get('ticker')
+    end_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=5*365)
+
+    # Download stock price data
+    stock_data = yf.download(ticker, start=start_date, end=end_date, interval='1wk')
+    
+    # Extract date and closing price
+    dates = stock_data.index.strftime('%Y-%m-%d').tolist()
+    prices = stock_data['Close'].tolist()
+    
+    return jsonify({'dates': dates, 'prices': prices})
+
+@app.route('/dividends', methods=['GET'])
+def dividends():
+    ticker = request.args.get('ticker')
+    # Fetch dividend data using yfinance
+    div_data = yf.Ticker(ticker).dividends
+    # Filter dividend data for the last 10 years
+    end_date = datetime.datetime.now(pytz.utc)
+    start_date = end_date - datetime.timedelta(days=365 * 10)
+    start_date = start_date.replace(tzinfo=pytz.utc)  # Make start_date timezone-aware
+    # Filter dividends and remove timestamps
+    dividends = [{'date': date.strftime('%Y-%m-%d'), 'amount': float(amount)} for date, amount in div_data.items() if date >= start_date]
+    return jsonify(dividends)
 
 # Function to connect to the SQLite database
 def connect_db():

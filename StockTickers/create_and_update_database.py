@@ -170,7 +170,7 @@ def printDB():
 
 def main():
 	# Create database and get connection
-	conn = create_database()
+	conn = sqlite3.connect('FlaskApp/financial_data.db')
 
 	# Get the tickers from the data
 	csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'

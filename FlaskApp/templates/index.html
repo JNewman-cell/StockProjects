@@ -34,7 +34,21 @@
             </div>
         </div>
 		<div class="row justify-content-center" id="error-message"></div>
-        <div class="row mt-3" width="100%">
+		<div class="row mt-3">
+			<div class="col-md-6">
+				<canvas id="StockPriceGraph" width="100" height="100"></canvas>
+				<div id="PriceChange1yr" class="change"></div>
+				<div id="PriceChange2yr" class="change"></div>
+				<div id="PriceChangemax" class="change"></div>
+			</div>
+			<div class="col-md-6">
+				<canvas id="DividendGraph" width="100" height="100"></canvas>
+				<div id="DividendChange1yr" class="change"></div>
+				<div id="DividendChange2yr" class="change"></div>
+				<div id="DividendChangemax" class="change"></div>
+			</div>
+		</div>
+        <div class="row mt-3">
 			<div class="col-md-4">
 				<canvas id="RevenueGraph" width="100" height="100"></canvas>
 				<div id="RevenueChange1yr" class="change"></div>
@@ -102,6 +116,29 @@
             // Clear the input field and hide ticker suggestions
             $('#ticker').val('');
             $('#tickerList').empty();
+
+			$.getJSON('/stockprice', {ticker: selectedTicker})
+			.done(function(data) {
+				// Check if data is available
+				if (data.dates.length > 0) {
+					drawStockPriceGraph(data.dates, data.prices);
+				} else {
+					alert('No data available for this ticker.');
+				}
+			})
+			.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error('Error fetching stock price data:', textStatus, errorThrown);
+			});
+
+			$.getJSON('/dividends', { ticker: selectedTicker })
+			.done(function(data) {
+				// Check if data is available
+				drawDividendGraph(data);
+			})
+			.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error('Error fetching dividend data:', textStatus, errorThrown);
+			});
+
             // Fetch financial data for the selected ticker
             $.getJSON('/graphs', {ticker: selectedTicker})
             .done(function(data) {
@@ -174,6 +211,148 @@
             'max': changemax.toFixed(2)
         };
     }
+
+	function calculatePriceChange(prices) {
+		// Check if prices array has at least 3 elements
+		if (prices.length < 3) {
+			return null; // Unable to calculate change
+		}
+
+		// Calculate percentage change over different time periods
+		var max = prices.length;
+		var change1yr = ((prices[max - 1] - prices[max - 52]) / prices[max - 52]) * 100;
+		var change2yr = ((prices[max - 1] - prices[max - 104]) / prices[max - 104]) * 100;
+		var changemax = ((prices[max - 1] - prices[0]) / prices[0]) * 100;
+
+		return {
+			'1yr': change1yr.toFixed(2),
+			'2yr': change2yr.toFixed(2),
+			'max': changemax.toFixed(2)
+		};
+	}
+
+	// Function to draw the dividend graph
+	function drawDividendGraph(dividends) {
+		var dates = dividends.map(function(dividend) {
+			return dividend.date;
+		});
+		var amounts = dividends.map(function(dividend) {
+			return dividend.amount;
+		});
+		var ctx = document.getElementById('DividendGraph');
+		// Check if a chart instance exists for the canvas
+		var existingChart = Chart.getChart(ctx);
+		if (existingChart) {
+			// Destroy the existing chart instance
+			existingChart.destroy();
+		}
+		var dividendGraph = new Chart(ctx, {
+			type: 'bar',
+			data: {
+				labels: dates,
+				datasets: [{
+					label: 'Dividends',
+					data: amounts,
+					backgroundColor: 'rgb(50, 180, 50)',
+					borderWidth: 0
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				plugins: {
+					legend: { display: false },
+					title: {
+						display: true,
+						text: 'Dividend Data',
+						font: { size: 20 }
+					}
+				},
+				scales: {
+					y: {
+						ticks: { font: { size: 16 } }
+					},
+					x: {
+						ticks: { font: { size: 16 } }
+					}
+				}
+			}
+		});
+	}
+
+
+	function drawStockPriceGraph(dates, prices) {
+        var ctx = document.getElementById('StockPriceGraph');
+		// Check if a chart instance exists for the canvas
+		var existingChart = Chart.getChart(ctx);
+		if (existingChart) {
+			// Destroy the existing chart instance
+			existingChart.destroy();
+		}
+        var stockPriceGraph = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Stock Price',
+                    data: prices,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+					borderWidth: 3, // Adjust line thickness here
+                    pointRadius: 0 // Hide data points
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+					legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Stock Price',
+						font: {
+							size: 20,
+						},
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+							font: {
+								size: 16
+							},
+                            callback: function(value, index, values) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+					x: {
+						ticks: {
+							font: {
+								size: 16
+							},
+						}
+					}
+                },
+				interpolation: {
+					cubicInterpolationMode: 'default'
+				}
+            }
+        });
+		var change = calculatePriceChange(prices);
+
+		// Update the HTML elements with the calculated change
+		var changeElement1yr = document.getElementById('PriceChange1yr');
+		var changeElement2yr = document.getElementById('PriceChange2yr');
+		var changeElementmax = document.getElementById('PriceChangemax');
+
+		changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+		changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+		changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+		changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+		changeElementmax.innerText = '5yr change: ' + change['max'] + '%';
+		changeElementmax.style.backgroundColor = change['max'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+	}
 
     // Function to draw the graph
 	function drawGraph(label, years, data, color = 'blue') {
@@ -262,27 +441,25 @@
 		});
 		var change = calculateChange(data, data.length - 1);
 
-		var change = calculateChange(data, data.length - 1);
-
 		// Update the HTML elements with the calculated change
 		var changeElement1yr = document.getElementById(label + 'Change1yr');
 		var changeElement2yr = document.getElementById(label + 'Change2yr');
-		var changeElement4yr = document.getElementById(label + 'Changemax');
+		var changeElementmax = document.getElementById(label + 'Changemax');
 		if (label == "Shares Outstanding"){
 			changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
 			changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
 			changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
 			changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
-			changeElement4yr.innerText = 'Max change: ' + change['max'] + '%';
-			changeElement4yr.style.backgroundColor = change['max'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
+			changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
+			changeElementmax.style.backgroundColor = change['max'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
 		}
 		else {
 			changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
 			changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
 			changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
 			changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
-			changeElement4yr.innerText = 'Max change: ' + change['max'] + '%';
-			changeElement4yr.style.backgroundColor = change['max'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+			changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
+			changeElementmax.style.backgroundColor = change['max'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
 		}
 		
 	}

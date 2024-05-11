@@ -1,27 +1,17 @@
 import yfinance as yf
-import pandas as pd
+import datetime
 
-msft = yf.Ticker("MSFT")
+# msft = yf.Ticker("MSFT")
 
 # # get all stock info
-print(msft.info)
+# print(msft.info)
 
-# # # get historical market data
-# # hist = msft.history(period="1mo")
-# # print(msft.dividends)
-# print(msft.income_stmt)
-# # print(msft.quarterly_income_stmt)
-# print(msft.balance_sheet)
-# print(msft.cashflow)
+# # get historical market data
+# hist = msft.history(period="5yr")
 
-# year_to_search = '2021'
+end_date = datetime.datetime.now()
+start_date = end_date - datetime.timedelta(days=5*365)
 
-# # Convert column names to strings and then search for the year
-# df_columns_as_strings = msft.income_stmt.columns.astype(str)
-# index_of_year = None
-# for idx, col_name in enumerate(df_columns_as_strings):
-#     if year_to_search in col_name:
-#         index_of_year = idx
-#         break
+stock_data = yf.download("MSFT", start=start_date, end=end_date, interval='1wk')
 
-# print(index_of_year)
+print(stock_data)
