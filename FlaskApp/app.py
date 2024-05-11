@@ -4,15 +4,6 @@ import sqlite3
 import yfinance as yf
 import datetime
 import pytz
-import os
-
-# Get the directory containing your Python script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the absolute path to trie.pkl
-trie_path = os.path.join(script_dir, 'FlaskApp', 'trie.pkl')
-db_path = os.path.join(script_dir, 'FlaskApp', 'financial_data.db')
-
 
 class TrieNode:
     def __init__(self):
@@ -62,7 +53,7 @@ class Trie:
         return true_prefix_match + next_highest_market_cap[:4]
 
 # Load the Trie in your Flask app
-with open('FlaskApp/trie.pkl', 'rb') as f:
+with open('trie.pkl', 'rb') as f:
     trie = pickle.load(f)
 
 app = Flask(__name__)
@@ -113,7 +104,7 @@ def dividends():
 
 # Function to connect to the SQLite database
 def connect_db():
-    conn = sqlite3.connect('FlaskApp/financial_data.db')
+    conn = sqlite3.connect('financial_data.db')
     return conn
 
 # Route to handle graph data request
