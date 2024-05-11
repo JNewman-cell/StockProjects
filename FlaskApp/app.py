@@ -4,6 +4,15 @@ import sqlite3
 import yfinance as yf
 import datetime
 import pytz
+import os
+
+# Get the directory containing your Python script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the absolute path to trie.pkl
+trie_path = os.path.join(script_dir, 'FlaskApp', 'trie.pkl')
+db_path = os.path.join(script_dir, 'FlaskApp', 'financial_data.db')
+
 
 class TrieNode:
     def __init__(self):
