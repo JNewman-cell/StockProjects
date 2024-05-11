@@ -43,7 +43,7 @@ jobs:
 
     - name: Create Trie for autocomplete of tickers
       run: |
-        python StockTickers/create_Trie.py
+        python FlaskApp/create_Trie.py
 
     - name: Add and commit cleaned dataset CSVs and Trie
       run: |
