@@ -42,7 +42,7 @@ def company_stock_price():
     stock_data = yf.download(ticker, start=start_date, end=end_date, interval='1wk')
     
     # Extract date and closing price
-    dates = stock_data.index.strftime('%Y-%m-%d').tolist()
+    dates = stock_data.index.strftime('%Y-%m').tolist()
     prices = stock_data['Close'].tolist()
     
     return jsonify({'dates': dates, 'prices': prices})
@@ -51,13 +51,16 @@ def company_stock_price():
 def dividends():
     ticker = request.args.get('ticker')
     # Fetch dividend data using yfinance
-    div_data = yf.Ticker(ticker).dividends
-    # Filter dividend data for the last 10 years
-    end_date = datetime.datetime.now(pytz.utc)
+    ticker_obj = yf.Ticker(ticker)
+    
+    # Define date range for the last 10 years
+    end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=365 * 10)
-    start_date = start_date.replace(tzinfo=pytz.utc)  # Make start_date timezone-aware
-    # Filter dividends and remove timestamps
-    dividends = [{'date': date.strftime('%Y-%m-%d'), 'amount': float(amount)} for date, amount in div_data.items() if date >= start_date]
+    start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
+
+    # Fetch and filter dividend data
+    div_data = ticker_obj.history(start=start_date, end=end_date).Dividends
+    dividends = [{'date': date.strftime('%Y-%m'), 'amount': float(amount)} for date, amount in div_data.items() if amount > 0]
     return jsonify(dividends)
 
 # Function to connect to the SQLite database
