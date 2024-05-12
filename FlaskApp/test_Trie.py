@@ -45,7 +45,7 @@ class TestTrie(unittest.TestCase):
 
         with open(os.getcwd()+'/trie.pkl', 'rb') as f:
             data = pickle.load(f)
-            trie = data['trie']
+            self.trie = data['trie']
 
     def test_trie(self):
         max_length = 5
