@@ -28,7 +28,7 @@ jobs:
         cache: 'pip' # caching pip dependencies
     - run: pip install -r requirements.txt
 
-    - name: Create Trie for autocomplete of tickers
+    - name: Test Custom Trie Autocomplete
       run: |
         cd FlaskApp
         python test_Trie.py
