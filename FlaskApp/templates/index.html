@@ -17,6 +17,7 @@
             border-radius: 5px;
             font-size: 16px;
             text-align: center;
+			background-color: #CCCCCC;
         }
     </style>
 </head>
@@ -37,15 +38,12 @@
 		<div class="row mt-3">
 			<div class="col-md-6">
 				<canvas id="Stock PriceGraph" width="100" height="100"></canvas>
-				<div id="PriceChange1yr" class="change"></div>
-				<div id="PriceChange2yr" class="change"></div>
-				<div id="PriceChangemax" class="change"></div>
+				<div id="Stock PriceChange1yr" class="change"></div>
+				<div id="Stock PriceChange2yr" class="change"></div>
+				<div id="Stock PriceChangemax" class="change"></div>
 			</div>
 			<div class="col-md-6">
 				<canvas id="DividendsGraph" width="100" height="100"></canvas>
-				<div id="DividendChange1yr" class="change"></div>
-				<div id="DividendChange2yr" class="change"></div>
-				<div id="DividendChangemax" class="change"></div>
 			</div>
 		</div>
         <div class="row mt-3">
@@ -95,7 +93,8 @@
 
     <script>
     $(document).ready(function(){
-		 // Draw empty charts
+		// Draw empty charts
+		var emptyData = []
 		drawEmptyChart('Stock PriceGraph');
 		drawEmptyChart('DividendsGraph');
 		drawEmptyChart('RevenueGraph');
@@ -105,6 +104,12 @@
 		drawEmptyChart('FCF and SBCGraph');
 		drawEmptyChart('Cash and DebtGraph');
 		drawEmptyChart('Shares OutstandingGraph');
+		displayChangesOverTime('Stock Price', emptyData);
+		displayChangesOverTime('Revenue', emptyData);
+		displayChangesOverTime('EBITDA', emptyData);
+		displayChangesOverTime('Net Income', emptyData);
+		displayChangesOverTime('EPS', emptyData);
+		displayChangesOverTime('Shares Outstanding', emptyData);
 
         $('#ticker').on('input', function() {
             var prefix = $(this).val();
@@ -219,7 +224,7 @@
         };
     }
 
-	function calculatePriceChange(prices) {
+	function calculateStockPriceChange(prices) {
 		// Check if prices array has at least 3 elements
 		if (prices.length < 3) {
 			return null; // Unable to calculate change
@@ -339,8 +344,6 @@
 		}
 	}
 
-
-
 	function drawStockPriceGraph(dates, prices) {
         var ctx = document.getElementById('Stock PriceGraph');
 		// Check if a chart instance exists for the canvas
@@ -399,12 +402,12 @@
 				}
             }
         });
-		var change = calculatePriceChange(prices);
+		var change = calculateStockPriceChange(prices);
 
 		// Update the HTML elements with the calculated change
-		var changeElement1yr = document.getElementById('PriceChange1yr');
-		var changeElement2yr = document.getElementById('PriceChange2yr');
-		var changeElementmax = document.getElementById('PriceChangemax');
+		var changeElement1yr = document.getElementById('Stock PriceChange1yr');
+		var changeElement2yr = document.getElementById('Stock PriceChange2yr');
+		var changeElementmax = document.getElementById('Stock PriceChangemax');
 
 		changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
 		changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
@@ -498,30 +501,39 @@
 					}
 				},
 			}           
-		});
-		var change = calculateChange(data, data.length - 1);
+		});	
+		displayChangesOverTime(label, data);
+	}
 
-		// Update the HTML elements with the calculated change
+	function displayChangesOverTime(label, data){
+		// console.log(label)
 		var changeElement1yr = document.getElementById(label + 'Change1yr');
 		var changeElement2yr = document.getElementById(label + 'Change2yr');
 		var changeElementmax = document.getElementById(label + 'Changemax');
-		if (label == "Shares Outstanding"){
-			changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
-			changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
-			changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
-			changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
-			changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
-			changeElementmax.style.backgroundColor = change['max'] >= 0 ? '#ff9999' : '#b2d8b2'; // Color the background based on the change
+
+		if (data.length == 0){
+			changeElement1yr.innerText = '1yr change: 0%';
+			changeElement2yr.innerText = '2yr change: 0%';
+			changeElementmax.innerText = 'Max change: 0%';
 		}
-		else {
-			changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
-			changeElement1yr.style.backgroundColor = change['1yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
-			changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
-			changeElement2yr.style.backgroundColor = change['2yr'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
-			changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
-			changeElementmax.style.backgroundColor = change['max'] >= 0 ? '#b2d8b2' : '#ff9999'; // Color the background based on the change
+		else{
+			var change = calculateChange(data, data.length - 1);
+			if (label == "Shares Outstanding") {
+				changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+				changeElement1yr.style.backgroundColor = change['1yr'] > 0 ? '#ff9999' : (change['1yr'] < 0 ? '#b2d8b2' : '#CCCCCC'); // Color the background based on the change
+				changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+				changeElement2yr.style.backgroundColor = change['2yr'] > 0 ? '#ff9999' : (change['2yr'] < 0 ? '#b2d8b2' : '#CCCCCC');
+				changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
+				changeElementmax.style.backgroundColor = change['max'] > 0 ? '#ff9999' : (change['max'] < 0 ? '#b2d8b2' : '#CCCCCC');
+			} else {
+				changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+				changeElement1yr.style.backgroundColor = change['1yr'] > 0 ? '#b2d8b2' : (change['1yr'] < 0 ? '#ff9999' : '#CCCCCC');
+				changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+				changeElement2yr.style.backgroundColor = change['2yr'] > 0 ? '#b2d8b2' : (change['2yr'] < 0 ? '#ff9999' : '#CCCCCC');
+				changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
+				changeElementmax.style.backgroundColor = change['max'] > 0 ? '#b2d8b2' : (change['max'] < 0 ? '#ff9999' : '#CCCCCC');
+			}
 		}
-		
 	}
 
 	function drawTwoDatasetsGraph(label1, label2, years, data1, data2, color1 = 'blue', color2 = 'red') {
