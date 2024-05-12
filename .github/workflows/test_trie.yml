@@ -30,4 +30,5 @@ jobs:
 
     - name: Create Trie for autocomplete of tickers
       run: |
-        python StockTickers/test_Trie.py
+        cd FlaskApp
+        python test_Trie.py
