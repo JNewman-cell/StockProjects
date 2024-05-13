@@ -27,7 +27,6 @@ def extract_dividend_data(ticker):
     start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
 
     # Fetch and filter dividend data
-    div_data = ticker_obj.history(start=start_date, end=end_date).Dividends
     history = ticker_obj.history(start=start_date, end=end_date)
     if 'Dividends' in history.columns:
         div_data = history.Dividends
