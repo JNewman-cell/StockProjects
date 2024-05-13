@@ -37,6 +37,6 @@ jobs:
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
         git pull origin main
-        git add FlaskApp/financial_data.db
+        git add FlaskApp/dividend_data.db
         git commit -m "Add updated dividend database" || echo "No changes to commit"
         git push origin main
