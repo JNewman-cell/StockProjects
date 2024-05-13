@@ -25,7 +25,7 @@ def data_exists_in_database(conn, ticker, year_range):
             return False
     return True
 
-def extract_financial_data(ticker, year):
+def extract_financial_data(ticker, years):
 	data = {}
 	stock = yf.Ticker(ticker)
 
