@@ -15,3 +15,7 @@
 ## Scheduled Update of Database:
 
 [![Update Stock Yearly Financials DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_database.yml)
+
+## Scheduled Update of Dividend Database:
+
+[![Update Stock Dividends DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml)
