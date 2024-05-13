@@ -17,28 +17,25 @@ def extract_tickers_from_csv(file_path):
 				tickers.append(row['Ticker'])
 	return tickers
 
-def extract_financial_data(ticker):
-	data = {}
-	stock = yf.Ticker(ticker)
+def extract_dividend_data(ticker):
+    # Fetch dividend data using yfinance
+    ticker_obj = yf.Ticker(ticker)
 
-	income_stmt = stock.income_stmt
-	cashflow = stock.cashflow
-	balance_sheet = stock.balance_sheet
-	print(ticker)
+    # Define date range for the last 10 years
+    end_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=365 * 15)
+    start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
 
-	# Fetch dividend data using yfinance
-	ticker_obj = yf.Ticker(ticker)
+    # Fetch and filter dividend data
+    div_data = ticker_obj.history(start=start_date, end=end_date).Dividends
+    history = ticker_obj.history(start=start_date, end=end_date)
+    if 'Dividends' in history.columns:
+        div_data = history.Dividends
+        dividends = [{'date': date.strftime('%Y-%m'), 'amount': float(amount)} for date, amount in div_data.items() if amount > 0]
+    else:
+        dividends = []
 
-	# Define date range for the last 10 years
-	end_date = datetime.datetime.now()
-	start_date = end_date - datetime.timedelta(days=365 * 15)
-	start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
-
-	# Fetch and filter dividend data
-	div_data = ticker_obj.history(start=start_date, end=end_date).Dividends
-	dividends = [{'date': date.strftime('%Y-%m'), 'amount': float(amount)} for date, amount in div_data.items() if amount > 0]
-
-	return dividends
+    return dividends
 
 def create_database():
     conn = sqlite3.connect('FlaskApp/dividend_data.db')
@@ -109,7 +106,7 @@ def main():
     # print(len(tickers))
 
     for ticker in tickers:
-        data = extract_financial_data(ticker)
+        data = extract_dividend_data(ticker)
         insert_data_into_database(conn, ticker, data)
     conn.close()
 
