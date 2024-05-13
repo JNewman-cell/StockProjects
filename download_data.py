@@ -54,29 +54,47 @@ def dividendsCheck(ticker):
     return dividends
 
 if __name__ == '__main__':
-    num_calls = 100
+    ticker = 'MSFT'
 
-    # List of 100 stock tickers
-    tickers = [
-        "AAPL", "MSFT", "AMZN", "GOOGL", "META", "TSLA", "BRK-A", "JNJ", "V", "WMT",
-        "PG", "JPM", "MA", "NVDA", "DIS", "HD", "BAC", "UNH", "INTC", "VZ",
-        "PYPL", "CMCSA", "ADBE", "NFLX", "PFE", "KO", "MRK", "T", "CRM", "PEP",
-        "ABBV", "NKE", "XOM", "CSCO", "CVX", "BA", "WFC", "TMO", "ABT", "PM",
-        "ORCL", "AMGN", "AMD", "ACN", "IBM", "QCOM", "MDT", "DHR", "HON", "NEE",
-        "LOW", "COST", "SBUX", "INTU", "UNP", "MMM", "LMT", "TXN", "RTX", "LIN",
-        "UPS", "NOW", "GS", "MS", "BDX", "ISRG", "FIS", "GILD", "SYK",
-        "CVS", "DE", "SPGI", "VRTX", "VRTX", "ZTS", "TMUS", "AMAT", "CL", "MO",
-        "BKNG", "CAT", "FDX", "FISV", "BIIB", "CI", "MMC", "ADI", "ADP", "ITW",
-        "PNC", "TFC", "DUK", "PLD", "ECL", "BSX", "EW", "SO", "GM"
-    ]
+    start_time = time.time()
+    stock = yf.Ticker(ticker)
+    income_stmt = stock.income_stmt
+    cashflow = stock.cashflow
+    balance_sheet = stock.balance_sheet
+    end_time = time.time()
+    print(end_time-start_time)
+    start_time = time.time()
+    end_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=365 * 15)
+    start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
 
-    # Measure average time for prices
-    prices_total_time = sum(prices(ticker) for ticker in tickers)
-    prices_avg_time = prices_total_time / (len(tickers))
+    # Fetch and filter dividend data
+    div_data = stock.history(start=start_date, end=end_date).Dividends
+    end_time = time.time()
+    print(end_time-start_time)
 
-    # Measure average time for dividends
-    dividends_total_time = sum(dividends(ticker) for ticker in tickers)
-    dividends_avg_time = dividends_total_time / (len(tickers))
+    # performance testing for APIs
+    # # List of 100 stock tickers
+    # tickers = [
+    #     "AAPL", "MSFT", "AMZN", "GOOGL", "META", "TSLA", "BRK-A", "JNJ", "V", "WMT",
+    #     "PG", "JPM", "MA", "NVDA", "DIS", "HD", "BAC", "UNH", "INTC", "VZ",
+    #     "PYPL", "CMCSA", "ADBE", "NFLX", "PFE", "KO", "MRK", "T", "CRM", "PEP",
+    #     "ABBV", "NKE", "XOM", "CSCO", "CVX", "BA", "WFC", "TMO", "ABT", "PM",
+    #     "ORCL", "AMGN", "AMD", "ACN", "IBM", "QCOM", "MDT", "DHR", "HON", "NEE",
+    #     "LOW", "COST", "SBUX", "INTU", "UNP", "MMM", "LMT", "TXN", "RTX", "LIN",
+    #     "UPS", "NOW", "GS", "MS", "BDX", "ISRG", "FIS", "GILD", "SYK",
+    #     "CVS", "DE", "SPGI", "VRTX", "VRTX", "ZTS", "TMUS", "AMAT", "CL", "MO",
+    #     "BKNG", "CAT", "FDX", "FISV", "BIIB", "CI", "MMC", "ADI", "ADP", "ITW",
+    #     "PNC", "TFC", "DUK", "PLD", "ECL", "BSX", "EW", "SO", "GM"
+    # ]
 
-    print(f"Average time taken for prices (over {len(tickers)} stocks): {prices_avg_time*1000} milliseconds")
-    print(f"Average time taken for dividends (over {len(tickers)} stocks): {dividends_avg_time*1000} milliseconds")
+    # # Measure average time for prices
+    # prices_total_time = sum(prices(ticker) for ticker in tickers)
+    # prices_avg_time = prices_total_time / (len(tickers))
+
+    # # Measure average time for dividends
+    # dividends_total_time = sum(dividends(ticker) for ticker in tickers)
+    # dividends_avg_time = dividends_total_time / (len(tickers))
+
+    # print(f"Average time taken for prices (over {len(tickers)} stocks): {prices_avg_time*1000} milliseconds")
+    # print(f"Average time taken for dividends (over {len(tickers)} stocks): {dividends_avg_time*1000} milliseconds")

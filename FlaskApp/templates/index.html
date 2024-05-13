@@ -149,7 +149,24 @@
 			$.getJSON('/dividends', { ticker: selectedTicker })
 			.done(function(data) {
 				// Check if data is available
-				drawDividendGraph(data);
+				console.log(data)
+				
+				var dates = [];
+				var dividends = [];
+				if (Array.isArray(data)) {
+						data.forEach(function(item) {
+							if (Array.isArray(item) && item.length >= 2) {
+								dates.push(item[0]);
+								dividends.push(item[1]);
+							}
+						});
+						console.log(dates)
+						console.log(dividends)
+						// Draw the bar graphs
+						drawDividendGraph(dates, dividends);
+					} else {
+						console.error('Invalid data format:', data);
+					}
 			})
 			.fail(function(jqXHR, textStatus, errorThrown) {
 				console.error('Error fetching dividend data:', textStatus, errorThrown);
@@ -214,9 +231,22 @@
 
 	function calculateChange(data, index) {
 		var max = data.length
-        var change1yr = ((data[index] - data[index-1]) / data[index-1]) * 100;
+
+		var change1yr = ((data[index] - data[index-1]) / data[index-1]) * 100;
 		var change2yr = ((data[index] - data[index-2]) / data[index-2]) * 100;
-        var changemax = ((data[index] - data[index-max+1]) / data[index-max+1]) * 100;
+		var changemax = ((data[index] - data[index-max+1]) / data[index-max+1]) * 100;
+
+		// Check for division by zero or negative
+		if (data[index-1] === 0 || data[index-1] < 0 || data[index] < 0) {
+			change1yr = NaN;
+
+		}
+		if (data[index-2] === 0 || data[index-2] < 0 || data[index] < 0){
+			change2yr = NaN;
+		}
+		if ( data[index-max+1] === 0 || data[index-max+1] < 0 || data[index] < 0){
+			changemax = NaN;
+		}
         return {
             '1yr': change1yr.toFixed(2),
 			'2yr': change2yr.toFixed(2),
@@ -244,13 +274,7 @@
 	}
 
 	// Function to draw the dividend graph
-	function drawDividendGraph(dividends) {
-		var dates = dividends.map(function(dividend) {
-			return dividend.date;
-		});
-		var amounts = dividends.map(function(dividend) {
-			return dividend.amount;
-		});
+	function drawDividendGraph(dates, amounts) {
 		var ctx = document.getElementById('DividendsGraph');
 		// Check if a chart instance exists for the canvas
 		var existingChart = Chart.getChart(ctx);

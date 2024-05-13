@@ -17,7 +17,15 @@ def extract_tickers_from_csv(file_path):
 				tickers.append(row['Ticker'])
 	return tickers
 
-def extract_financial_data(ticker, years):
+def data_exists_in_database(conn, ticker, year_range):
+    cursor = conn.cursor()
+    for year in year_range:
+        cursor.execute('''SELECT 1 FROM stocks WHERE ticker = ? AND year = ?''', (ticker, year))
+        if cursor.fetchone() is None:
+            return False
+    return True
+
+def extract_financial_data(ticker, year):
 	data = {}
 	stock = yf.Ticker(ticker)
 
@@ -27,8 +35,6 @@ def extract_financial_data(ticker, years):
 	print(ticker)
 
 	for year in years:
-		# print(type(df_new))
-		# print(income_stmt.iloc[:, 3:4]) 
 		income_stmt_columns_as_strings = income_stmt.columns.astype(str)
 		index_of_year_income = None
 		for idx, col_name in enumerate(income_stmt_columns_as_strings):
@@ -78,10 +84,8 @@ def extract_financial_data(ticker, years):
 			'Debt': check_statement(ticker, balance_sheet_year, 'Total Debt'),
 			'SharesOutstanding': check_statement(ticker, balance_sheet_year, 'Ordinary Shares Number')
 		}
-			# 'ROCE': income_stmt_year.loc['EBIT'].values[0] / (balance_sheet_year.loc['Total Assets'].values[0] - balance_sheet_year.loc['Total Current Liabilities'].values[0])
 		
 		data[year] = financials
-	# time.sleep(0.3)
 	return data
 
 errorsPerField = {
@@ -188,8 +192,10 @@ def main():
 	# print(len(tickers))
 
 	for ticker in tickers:
-		data = extract_financial_data(ticker, year_range)
-		insert_data_into_database(conn, ticker, data)
+		for year in years:
+			if not data_exists_in_database(conn, ticker, year_range):
+				data = extract_financial_data(ticker, year_range)
+				insert_data_into_database(conn, ticker, data)
 	conn.close()
 
 	# print(errorsPerField)

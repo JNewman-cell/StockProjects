@@ -50,22 +50,23 @@ def company_stock_price():
 @app.route('/dividends', methods=['GET'])
 def dividends():
     ticker = request.args.get('ticker')
-    # Fetch dividend data using yfinance
-    ticker_obj = yf.Ticker(ticker)
-    
-    # Define date range for the last 10 years
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days=365 * 10)
-    start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
-
-    # Fetch and filter dividend data
-    div_data = ticker_obj.history(start=start_date, end=end_date).Dividends
-    dividends = [{'date': date.strftime('%Y-%m'), 'amount': float(amount)} for date, amount in div_data.items() if amount > 0]
-    return jsonify(dividends)
+    conn = connect_dividend_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT date, dividend FROM stocks WHERE ticker = ? ORDER BY date", (ticker,))
+    data = cursor.fetchall()
+    # print(ticker)
+    print(data)
+    conn.close()
+    return jsonify(data)
 
 # Function to connect to the SQLite database
 def connect_db():
     conn = sqlite3.connect('financial_data.db')
+    return conn
+
+# Function to connect to the dividend SQLite database
+def connect_dividend_db():
+    conn = sqlite3.connect('dividend_data.db')
     return conn
 
 # Route to handle graph data request
