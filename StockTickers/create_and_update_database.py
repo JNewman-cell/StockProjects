@@ -17,14 +17,6 @@ def extract_tickers_from_csv(file_path):
 				tickers.append(row['Ticker'])
 	return tickers
 
-def data_exists_in_database(conn, ticker, year_range):
-    cursor = conn.cursor()
-    for year in year_range:
-        cursor.execute('''SELECT 1 FROM stocks WHERE ticker = ? AND year = ?''', (ticker, year))
-        if cursor.fetchone() is None:
-            return False
-    return True
-
 def extract_financial_data(ticker, years):
 	data = {}
 	stock = yf.Ticker(ticker)
@@ -192,10 +184,8 @@ def main():
 	# print(len(tickers))
 
 	for ticker in tickers:
-		for year in years:
-			if not data_exists_in_database(conn, ticker, year_range):
-				data = extract_financial_data(ticker, year_range)
-				insert_data_into_database(conn, ticker, data)
+		data = extract_financial_data(ticker, year_range)
+		insert_data_into_database(conn, ticker, data)
 	conn.close()
 
 	# print(errorsPerField)
