@@ -110,7 +110,7 @@ def main():
         insert_data_into_database(conn, ticker, data)
     conn.close()
 
-    printDB()
+    # printDB()
 
 if __name__ == "__main__":
     main()
