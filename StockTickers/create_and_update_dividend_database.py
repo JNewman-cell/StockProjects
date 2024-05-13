@@ -20,6 +20,7 @@ def extract_tickers_from_csv(file_path):
 def extract_dividend_data(ticker):
     # Fetch dividend data using yfinance
     ticker_obj = yf.Ticker(ticker)
+    print(ticker)
 
     # Define date range for the last 10 years
     end_date = datetime.datetime.now()
