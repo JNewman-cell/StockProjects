@@ -180,6 +180,22 @@
 				if (data.length === 0) {
 					// Display error message in HTML
 					errorMessageElement.innerText = "There is no data for the ticker: " + selectedTicker + ", sorry for the inconvenience";
+					var emptyData = []
+					drawEmptyChart('Stock PriceGraph');
+					drawEmptyChart('DividendsGraph');
+					drawEmptyChart('RevenueGraph');
+					drawEmptyChart('EBITDAGraph');
+					drawEmptyChart('Net IncomeGraph');
+					drawEmptyChart('EPSGraph');
+					drawEmptyChart('FCF and SBCGraph');
+					drawEmptyChart('Cash and DebtGraph');
+					drawEmptyChart('Shares OutstandingGraph');
+					displayChangesOverTime('Stock Price', emptyData);
+					displayChangesOverTime('Revenue', emptyData);
+					displayChangesOverTime('EBITDA', emptyData);
+					displayChangesOverTime('Net Income', emptyData);
+					displayChangesOverTime('EPS', emptyData);
+					displayChangesOverTime('Shares Outstanding', emptyData);
 				}
 				else{
 					errorMessageElement.innerText = ""
