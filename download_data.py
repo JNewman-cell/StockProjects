@@ -54,24 +54,25 @@ def dividendsCheck(ticker):
     return dividends
 
 if __name__ == '__main__':
-    ticker = 'MSFT'
+	ticker = 'MSFT'
 
-    start_time = time.time()
-    stock = yf.Ticker(ticker)
-    income_stmt = stock.income_stmt
-    cashflow = stock.cashflow
-    balance_sheet = stock.balance_sheet
-    end_time = time.time()
-    print(end_time-start_time)
-    start_time = time.time()
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days=365 * 15)
-    start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
+	start_time = time.time()
+	stock = yf.Ticker(ticker)
+	print(stock.info)
+    # income_stmt = stock.income_stmt
+    # cashflow = stock.cashflow
+    # balance_sheet = stock.balance_sheet
+    # end_time = time.time()
+    # print(end_time-start_time)
+    # start_time = time.time()
+    # end_date = datetime.datetime.now()
+    # start_date = end_date - datetime.timedelta(days=365 * 15)
+    # start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
 
-    # Fetch and filter dividend data
-    div_data = stock.history(start=start_date, end=end_date).Dividends
-    end_time = time.time()
-    print(end_time-start_time)
+    # # Fetch and filter dividend data
+    # div_data = stock.history(start=start_date, end=end_date).Dividends
+    # end_time = time.time()
+    # print(end_time-start_time)
 
     # performance testing for APIs
     # # List of 100 stock tickers
