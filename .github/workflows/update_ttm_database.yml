@@ -1,0 +1,42 @@
+name: Update Stock TTM Financials and Ratios DB (SQLite)
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Runs every day at 1:00 AM PST
+  workflow_dispatch:  # Enable manual trigger
+
+jobs:
+  update-the-stock-ttm-database-based-on-ticker-datasets:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
+
+    - name: Update TTM database information
+      run: |
+        python StockTickers/create_and_update_ratios_database.py
+
+    - name: Add and commit updated TTM database
+      run: |
+        git config --global user.email "jpnewman167@gmail.com"
+        git config --global user.name "JNewman-cell"
+        git pull origin main
+        git add FlaskApp/stock_info.db
+        git commit -m "Add updated TTM database" || echo "No changes to commit"
+        git push origin main
