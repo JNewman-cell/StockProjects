@@ -23,6 +23,9 @@
 			font-size: 2em; /* Adjust size as needed */
 			font-weight: bold; /* Makes the text bold */
 		}
+		.big-text {
+			font-size: 1.2em;
+		}
     </style>
 </head>
 <body>
@@ -194,13 +197,20 @@
 					// Create a container for the company information
 					var container = $('<div class="row"></div>');
 
-					// Loop through the data and add div elements for each field-value pair
-					$.each(data[0], function(field, value) {
+					// Define the order in which you want to display the fields
+					var displayOrder = ['Dividend Yield', '50 Day Moving Average', 'Revenue Growth', 'Total Cash',
+										'Payout Ratio', '200 Day Moving Average', 'Earnings Growth', 'Total Debt',
+										'Trailing PE', 'Forward PE', 'Trailing EPS', 'Forward EPS',
+										'Profit Margin', 'EBITDA'];
+
+					// Loop through the displayOrder array and add div elements for each field-value pair
+					$.each(displayOrder, function(index, field) {
+						var value = data[0][field];
 						// Create a column for each field-value pair
 						var column = $('<div class="col-md-3"></div>');
 						
 						// Add the field and value as text inside the column
-						column.append('<p><strong>' + field + ':</strong> ' + value + '</p>');
+						column.append('<p class="big-text"><strong>' + field + ':</strong> ' + value + '</p>');
 
 						// Append the column to the container
 						container.append(column);
@@ -212,7 +222,6 @@
 					stockDataDiv.append('<p>No data available for this ticker.</p>');
 				}
 			});
-
 
             // Fetch financial data for the selected ticker
             $.getJSON('/graphs', {ticker: selectedTicker})
