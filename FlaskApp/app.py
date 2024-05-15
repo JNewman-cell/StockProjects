@@ -29,8 +29,20 @@ def search():
 @app.route('/companyinfo', methods=['GET'])
 def companyinfo():
 	ticker = request.args.get('ticker')
-	info = yf.Ticker(ticker)
-	return jsonify(info)
+	conn = sqlite3.connect('stock_info.db')
+	cursor = conn.cursor()
+	cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps FROM stocks WHERE ticker = ?", (ticker,))
+	data = cursor.fetchall()
+	columns = ['profitMargins', 'payoutRatio', 'dividendYield',
+			'twoHundredDayAverage', 'fiftyDayAverage', 'totalCash', 'totalDebt',
+			'earningsGrowth', 'revenueGrowth', 'trailingPE', 'forwardPE',
+			'trailingEps', 'forwardEps']
+	result = [dict(zip(columns, row)) for row in data]
+
+	conn.close()
+	print(result)
+
+	return jsonify(result)
 
 @app.route('/stockprice', methods=['GET'])
 def company_stock_price():
@@ -55,7 +67,7 @@ def dividends():
     cursor.execute("SELECT date, dividend FROM stocks WHERE ticker = ? ORDER BY date", (ticker,))
     data = cursor.fetchall()
     # print(ticker)
-    print(data)
+    # print(data)
     conn.close()
     return jsonify(data)
 

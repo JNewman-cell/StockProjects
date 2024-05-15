@@ -18,30 +18,32 @@ def extract_tickers_from_csv(file_path):
 	return tickers
 
 def extract_stock_info(ticker):
-	data = {}
-	stock = yf.Ticker(ticker)
+    data = {}
+    stock = yf.Ticker(ticker)
 
-	ratios = stock.info
-	print(ticker)
-		
-	# Extract data
-	ratios = {
-		'profitMargins': check_ratios(ticker, ratios, 'profitMargins'),
-		'payoutRatio': check_ratios(ticker, ratios, 'payoutRatio'),
-		'dividendYield': check_ratios(ticker, ratios, 'dividendYield'),
-		'twoHundredDayAverage': check_ratios(ticker, ratios, 'twoHundredDayAverage'),
-		'fiftyDayAverage': check_ratios(ticker, ratios, 'fiftyDayAverage'),
-		'totalCash': check_ratios(ticker, ratios, 'totalCash'),
-		'totalDebt': check_ratios(ticker, ratios, 'totalDebt'),
-		'earningsGrowth': check_ratios(ticker, ratios, 'earningsGrowth'),
-		'revenueGrowth': check_ratios(ticker, ratios, 'revenueGrowth'),
-		'trailingPE': check_ratios(ticker, ratios, 'trailingPE'),
-		'forwardPE': check_ratios(ticker, ratios, 'forwardPE'),
-		'trailingEps': check_ratios(ticker, ratios, 'trailingEps'),
-		'forwardEps': check_ratios(ticker, ratios, 'forwardEps')
-	}
-		
-	return ratios
+    ratios = stock.info
+    print(ticker)
+    
+    # Extract data
+    ratios = {
+        'profitMargins': check_ratios(ticker, ratios, 'profitMargins'),
+        'payoutRatio': check_ratios(ticker, ratios, 'payoutRatio'),
+        'dividendYield': check_ratios(ticker, ratios, 'dividendYield'),
+        'twoHundredDayAverage': check_ratios(ticker, ratios, 'twoHundredDayAverage'),
+        'fiftyDayAverage': check_ratios(ticker, ratios, 'fiftyDayAverage'),
+        'totalCash': check_ratios(ticker, ratios, 'totalCash'),
+        'totalDebt': check_ratios(ticker, ratios, 'totalDebt'),
+        'earningsGrowth': check_ratios(ticker, ratios, 'earningsGrowth'),
+        'revenueGrowth': check_ratios(ticker, ratios, 'revenueGrowth'),
+        'trailingPE': check_ratios(ticker, ratios, 'trailingPE'),
+        'forwardPE': check_ratios(ticker, ratios, 'forwardPE'),
+        'trailingEps': check_ratios(ticker, ratios, 'trailingEps'),
+        'forwardEps': check_ratios(ticker, ratios, 'forwardEps'),
+        'ebitda': check_ratios(ticker, ratios, 'ebitda')
+    }
+    
+    return ratios
+
 
 def check_ratios(ticker, info, field):
 	try:
@@ -73,6 +75,7 @@ def create_database():
                         forwardPE REAL,
                         trailingEps REAL,
                         forwardEps REAL,
+                        ebitda REAL,
                         UNIQUE (ticker)
                     )''')
 
@@ -86,14 +89,15 @@ def insert_data_into_database(conn, ticker, data):
     values = (ticker, data['profitMargins'], data['payoutRatio'], data['dividendYield'],
               data['twoHundredDayAverage'], data['fiftyDayAverage'], data['totalCash'],
               data['totalDebt'], data['earningsGrowth'], data['revenueGrowth'],
-              data['trailingPE'], data['forwardPE'], data['trailingEps'], data['forwardEps'])
+              data['trailingPE'], data['forwardPE'], data['trailingEps'], data['forwardEps'],
+              data['ebitda'])
 
     # Insert or update the data
     cursor.execute('''INSERT INTO stocks (ticker, profitMargins, payoutRatio, dividendYield,
                                           twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt,
                                           earningsGrowth, revenueGrowth, trailingPE, forwardPE,
-                                          trailingEps, forwardEps)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                          trailingEps, forwardEps, ebitda)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                       ON CONFLICT(ticker) DO UPDATE SET
                       profitMargins=excluded.profitMargins,
                       payoutRatio=excluded.payoutRatio,
@@ -107,9 +111,11 @@ def insert_data_into_database(conn, ticker, data):
                       trailingPE=excluded.trailingPE,
                       forwardPE=excluded.forwardPE,
                       trailingEps=excluded.trailingEps,
-                      forwardEps=excluded.forwardEps''', values)
+                      forwardEps=excluded.forwardEps,
+                      ebitda=excluded.ebitda''', values)
 
     conn.commit()
+
 
 def printDB():
     try:
