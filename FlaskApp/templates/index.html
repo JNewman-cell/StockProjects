@@ -43,6 +43,7 @@
         </div>
 		<div class="row justify-content-center" id="error-message"></div>
 		<div class="row justify-content-center company-ticker" id="company ticker"></div>
+		<div class="row justify-content-center big-text" id="TTMTitle"></div>
 		<div id="stock-data" class="mt-3">
             <!-- Stock data will be displayed here -->
         </div>
@@ -190,6 +191,10 @@
 			.done(function(data) {
 				var stockDataDiv = $('#stock-data');
 				stockDataDiv.empty(); // Clear previous data
+
+				var stockDataTitle = document.getElementById('TTMTitle');
+				stockDataTitle.innerText = 'Trailing Twelve Months:'
+				stockDataTitle.style.fontWeight = 'bold';
 
 				console.log(data);
 
