@@ -19,3 +19,7 @@
 ## Scheduled Update of Dividend Database:
 
 [![Update Stock Dividends DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml)
+
+## Scheduled Update of TTM Database:
+
+[![Update Stock TTM Financials and Ratios DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml)
