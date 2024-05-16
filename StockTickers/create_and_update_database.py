@@ -173,7 +173,7 @@ def main():
 	csv_file_path2 = 'StockTickers/nyse_tickers_cleaned.csv'
 	extract_tickers_from_csv(csv_file_path)
 	extract_tickers_from_csv(csv_file_path2)
-	
+
 	# create list of years to search for in financial statements
 	current_year = datetime.now().year
 	year_range = list(range(2020, current_year+1))
@@ -186,10 +186,11 @@ def main():
 	for ticker in tickers:
 		data = extract_financial_data(ticker, year_range)
 		insert_data_into_database(conn, ticker, data)
+		time.sleep(1)
 	conn.close()
 
 	# print(errorsPerField)
-	
+
 	# printDB()
 
 if __name__ == "__main__":

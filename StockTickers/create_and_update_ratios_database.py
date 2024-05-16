@@ -161,8 +161,9 @@ def main():
 	for ticker in tickers:
 		data = extract_stock_info(ticker)
 		insert_data_into_database(conn, ticker, data)
+		time.sleep(1)
 	conn.close()
-	
+
 	printDB()
 
 if __name__ == "__main__":
