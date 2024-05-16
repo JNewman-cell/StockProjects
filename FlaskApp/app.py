@@ -92,7 +92,7 @@ def companyinfo():
         formatted_data.append(dict(zip(columns, formatted_row)))
 
     conn.close()
-    print(formatted_data)
+    # print(formatted_data)
 
     return jsonify(formatted_data)
 
@@ -121,7 +121,7 @@ def dividends():
     cursor.execute("SELECT date, dividend FROM stocks WHERE ticker = ? ORDER BY date", (ticker,))
     data = cursor.fetchall()
     # print(ticker)
-    # print(data)
+    print(data)
     conn.close()
     return jsonify(data)
 

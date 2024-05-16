@@ -108,7 +108,7 @@ def main():
     for ticker in tickers:
         data = extract_dividend_data(ticker)
         insert_data_into_database(conn, ticker, data)
-	time.sleep(0.1)
+        time.sleep(0.1)
     conn.close()
 
     # printDB()
