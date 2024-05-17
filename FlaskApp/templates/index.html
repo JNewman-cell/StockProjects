@@ -303,14 +303,13 @@
 	function calculateChange(data, index) {
 		var max = data.length
 
-		var change1yr = ((data[index] - data[index-1]) / data[index-1]) * 100;
-		var change2yr = ((data[index] - data[index-2]) / data[index-2]) * 100;
-		var changemax = ((data[index] - data[index-max+1]) / data[index-max+1]) * 100;
+		var change1yr = ((data[index] / data[index-1])-1) * 100;
+		var change2yr = (Math.pow((data[index] / data[index-2]),1/2) -1) * 100;
+		var changemax = (Math.pow((data[index] / data[index-max+1]), 1/(max-1))-1) * 100;
 
 		// Check for division by zero or negative
 		if (data[index-1] === 0 || data[index-1] < 0 || data[index] < 0) {
 			change1yr = NaN;
-
 		}
 		if (data[index-2] === 0 || data[index-2] < 0 || data[index] < 0){
 			change2yr = NaN;
@@ -607,25 +606,25 @@
 		var changeElementmax = document.getElementById(label + 'Changemax');
 
 		if (data.length == 0){
-			changeElement1yr.innerText = '1yr change: 0%';
-			changeElement2yr.innerText = '2yr change: 0%';
-			changeElementmax.innerText = 'Max change: 0%';
+			changeElement1yr.innerText = '1yr YoY change: 0%';
+			changeElement2yr.innerText = '2yr YoY change: 0%';
+			changeElementmax.innerText = 'Max YoY change: 0%';
 		}
 		else{
 			var change = calculateChange(data, data.length - 1);
 			if (label == "Shares Outstanding") {
-				changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+				changeElement1yr.innerText = '1yr YoY change: ' + change['1yr'] + '%';
 				changeElement1yr.style.backgroundColor = change['1yr'] > 0 ? '#ff9999' : (change['1yr'] < 0 ? '#b2d8b2' : '#CCCCCC'); // Color the background based on the change
-				changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+				changeElement2yr.innerText = '2yr YoY change: ' + change['2yr'] + '%';
 				changeElement2yr.style.backgroundColor = change['2yr'] > 0 ? '#ff9999' : (change['2yr'] < 0 ? '#b2d8b2' : '#CCCCCC');
-				changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
+				changeElementmax.innerText = 'Max YoY change: ' + change['max'] + '%';
 				changeElementmax.style.backgroundColor = change['max'] > 0 ? '#ff9999' : (change['max'] < 0 ? '#b2d8b2' : '#CCCCCC');
 			} else {
-				changeElement1yr.innerText = '1yr change: ' + change['1yr'] + '%';
+				changeElement1yr.innerText = '1yr YoY change: ' + change['1yr'] + '%';
 				changeElement1yr.style.backgroundColor = change['1yr'] > 0 ? '#b2d8b2' : (change['1yr'] < 0 ? '#ff9999' : '#CCCCCC');
-				changeElement2yr.innerText = '2yr change: ' + change['2yr'] + '%';
+				changeElement2yr.innerText = '2yr YoY change: ' + change['2yr'] + '%';
 				changeElement2yr.style.backgroundColor = change['2yr'] > 0 ? '#b2d8b2' : (change['2yr'] < 0 ? '#ff9999' : '#CCCCCC');
-				changeElementmax.innerText = 'Max change: ' + change['max'] + '%';
+				changeElementmax.innerText = 'Max YoY change: ' + change['max'] + '%';
 				changeElementmax.style.backgroundColor = change['max'] > 0 ? '#b2d8b2' : (change['max'] < 0 ? '#ff9999' : '#CCCCCC');
 			}
 		}
