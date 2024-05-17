@@ -41,6 +41,9 @@ def format_price(value):
 def format_value(value):
 	if value == None:
 		return 'N/A'
+	if (value >= 1e12) or (value <= -1e12):
+		# Format the value in trillions
+		return f"{value / 1e12:.1f}t"
 	if (value >= 1e9) or (value <= -1e9):
 		# Format the value in billions
 		return f"{value / 1e9:.1f}b"
