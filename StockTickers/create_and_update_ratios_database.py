@@ -94,7 +94,7 @@ def insert_data_into_database(conn, ticker, data):
                                           twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt,
                                           earningsGrowth, revenueGrowth, trailingPE, forwardPE,
                                           trailingEps, forwardEps, ebitda)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                       ON CONFLICT(ticker) DO UPDATE SET
                       name=excluded.name,
                       profitMargins=excluded.profitMargins,
