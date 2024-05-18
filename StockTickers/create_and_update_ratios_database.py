@@ -1,21 +1,26 @@
 import sqlite3
 import yfinance as yf
-import pandas as pd
-from collections import defaultdict
 import csv
 import time
-from datetime import datetime
 
 tickers = []
 
 def extract_tickers_from_csv(file_path):
-	with open(file_path, newline='') as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			frequency = row['Market Cap']
-			if frequency != 'N/A':
-				tickers.append(row['Ticker'])
-	return tickers
+    with open(file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            frequency = row['Market Cap']
+            if frequency != 'N/A':
+                tickers.append(row['Ticker'])
+    return tickers
+
+def check_ratios(ticker, info, field):
+    try:
+        value = info[field]
+    except Exception as e:
+        print("An error occurred for ticker: {}, field: {}".format(ticker, field))
+        value = None
+    return value
 
 def extract_stock_info(ticker):
     data = {}
@@ -24,8 +29,9 @@ def extract_stock_info(ticker):
     ratios = stock.info
     print(ticker)
     
-    # Extract data
-    ratios = {
+    # Extract data including the company name
+    data = {
+        'name': ratios.get('longName', 'N/A'),  # Fetch the long name of the company
         'profitMargins': check_ratios(ticker, ratios, 'profitMargins'),
         'payoutRatio': check_ratios(ticker, ratios, 'payoutRatio'),
         'dividendYield': check_ratios(ticker, ratios, 'dividendYield'),
@@ -42,25 +48,16 @@ def extract_stock_info(ticker):
         'ebitda': check_ratios(ticker, ratios, 'ebitda')
     }
     
-    return ratios
-
-
-def check_ratios(ticker, info, field):
-	try:
-		value = info[field]
-	except Exception as e:
-		print("An error occurred for field: "+field)
-		value = None
-
-	return value
+    return data
 
 def create_database():
     conn = sqlite3.connect('FlaskApp/stock_info.db')
     cursor = conn.cursor()
 
-    # Create tables with the new structure
+    # Create tables with the new structure including the company name
     cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
                         id INTEGER PRIMARY KEY,
+                        name TEXT,
                         ticker TEXT NOT NULL,
                         profitMargins REAL,
                         payoutRatio REAL,
@@ -85,20 +82,21 @@ def create_database():
 def insert_data_into_database(conn, ticker, data):
     cursor = conn.cursor()
 
-    # Prepare the data for insertion or update
-    values = (ticker, data['profitMargins'], data['payoutRatio'], data['dividendYield'],
+    # Prepare the data for insertion or update including the company name
+    values = (data['name'], ticker, data['profitMargins'], data['payoutRatio'], data['dividendYield'],
               data['twoHundredDayAverage'], data['fiftyDayAverage'], data['totalCash'],
               data['totalDebt'], data['earningsGrowth'], data['revenueGrowth'],
               data['trailingPE'], data['forwardPE'], data['trailingEps'], data['forwardEps'],
               data['ebitda'])
 
-    # Insert or update the data
-    cursor.execute('''INSERT INTO stocks (ticker, profitMargins, payoutRatio, dividendYield,
+    # Insert or update the data including the company name
+    cursor.execute('''INSERT INTO stocks (name, ticker, profitMargins, payoutRatio, dividendYield,
                                           twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt,
                                           earningsGrowth, revenueGrowth, trailingPE, forwardPE,
                                           trailingEps, forwardEps, ebitda)
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                       ON CONFLICT(ticker) DO UPDATE SET
+                      name=excluded.name,
                       profitMargins=excluded.profitMargins,
                       payoutRatio=excluded.payoutRatio,
                       dividendYield=excluded.dividendYield,
@@ -116,55 +114,40 @@ def insert_data_into_database(conn, ticker, data):
 
     conn.commit()
 
-
 def printDB():
     try:
-        # Connect to SQLite database
         conn = sqlite3.connect('FlaskApp/stock_info.db')
         c = conn.cursor()
-
-        # Execute a SELECT query to fetch all rows from the table
         c.execute('SELECT * FROM stocks')
-
-        # Fetch all rows from the result cursor
         rows = c.fetchall()
 
         if not rows:
             print("No data found in the 'stocks' table.")
         else:
-            # Print the fetched rows
             for row in rows:
                 print(row)
 
     except sqlite3.Error as e:
         print(f"Error reading data from database: {e}")
-
     finally:
-        # Close the connection
         if conn:
             conn.close()
 
 def main():
-	# Create database and get connection
-	conn = sqlite3.connect('FlaskApp/stock_info.db')
+    conn = create_database()
 
-	# Get the tickers from the data
-	csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'
-	csv_file_path2 = 'StockTickers/nyse_tickers_cleaned.csv'
-	extract_tickers_from_csv(csv_file_path)
-	extract_tickers_from_csv(csv_file_path2)
+    csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'
+    csv_file_path2 = 'StockTickers/nyse_tickers_cleaned.csv'
+    extract_tickers_from_csv(csv_file_path)
+    extract_tickers_from_csv(csv_file_path2)
 
-	# test ticker set
-	# tickers = ['AAPL', 'GOOGL']
-	# print(len(tickers))
+    for ticker in tickers:
+        data = extract_stock_info(ticker)
+        insert_data_into_database(conn, ticker, data)
+        time.sleep(1)
+    conn.close()
 
-	for ticker in tickers:
-		data = extract_stock_info(ticker)
-		insert_data_into_database(conn, ticker, data)
-		time.sleep(1)
-	conn.close()
-
-	printDB()
+    # printDB()
 
 if __name__ == "__main__":
     main()

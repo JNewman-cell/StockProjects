@@ -22,9 +22,14 @@ def extract_financial_data(ticker, years):
 	stock = yf.Ticker(ticker)
 
 	income_stmt = stock.income_stmt
+	time.sleep(1)
 	cashflow = stock.cashflow
+	time.sleep(1)
 	balance_sheet = stock.balance_sheet
 	print(ticker)
+	# print(income_stmt)
+	# print(cashflow)
+	# print(balance_sheet)
 
 	for year in years:
 		income_stmt_columns_as_strings = income_stmt.columns.astype(str)
@@ -33,7 +38,8 @@ def extract_financial_data(ticker, years):
 			if str(year) in col_name:
 				index_of_year_income = idx
 				break
-				
+		# print(index_of_year_income)
+		
 		# Check cash flow statement
 		cashflow_columns_as_strings = cashflow.columns.astype(str)
 		index_of_year_cashflow = None
@@ -41,6 +47,7 @@ def extract_financial_data(ticker, years):
 			if str(year) in col_name:
 				index_of_year_cashflow = idx
 				break
+		# print(index_of_year_cashflow)
 		
 		# Check balance sheet statement
 		balance_sheet_columns_as_strings = balance_sheet.columns.astype(str)
@@ -49,20 +56,16 @@ def extract_financial_data(ticker, years):
 			if str(year) in col_name:
 				index_of_year_balance_sheet = idx
 				break
+		# print(index_of_year_balance_sheet)
 
-		index_of_year = None
-		if index_of_year_income == index_of_year_cashflow == index_of_year_balance_sheet:
-			index_of_year = index_of_year_income
-
-		if index_of_year == None:
+		if index_of_year_income == None or index_of_year_balance_sheet == None or index_of_year_cashflow == None:
+			print('skipped year: ' + str(year))
 			continue
 
-		start,end = index_of_year, index_of_year+1
-
 		# Filter data for the specific year
-		income_stmt_year = income_stmt.iloc[:,start:end]
-		cashflow_year = cashflow.iloc[:,start:end]
-		balance_sheet_year = balance_sheet.iloc[:,start:end]
+		income_stmt_year = income_stmt.iloc[:,index_of_year_income:index_of_year_income+1]
+		cashflow_year = cashflow.iloc[:,index_of_year_cashflow:index_of_year_cashflow+1]
+		balance_sheet_year = balance_sheet.iloc[:,index_of_year_balance_sheet:index_of_year_balance_sheet+1]
 		
 		# Extract data
 		financials = {
@@ -166,7 +169,7 @@ def printDB():
 
 def main():
 	# Create database and get connection
-	conn = sqlite3.connect('FlaskApp/financial_data.db')
+	conn = create_database()
 
 	# Get the tickers from the data
 	csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'
@@ -181,6 +184,7 @@ def main():
 
 	# test ticker set
 	# tickers = ['AAPL', 'GOOGL']
+	# tickers = ['EA']
 	# print(len(tickers))
 
 	for ticker in tickers:
