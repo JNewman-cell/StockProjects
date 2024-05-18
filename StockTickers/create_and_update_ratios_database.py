@@ -31,7 +31,7 @@ def extract_stock_info(ticker):
     
     # Extract data including the company name
     data = {
-        'name': ratios.get('longName', 'N/A'),  # Fetch the long name of the company
+        'name': ratios.get('longName', 'N/A'),
         'profitMargins': check_ratios(ticker, ratios, 'profitMargins'),
         'payoutRatio': check_ratios(ticker, ratios, 'payoutRatio'),
         'dividendYield': check_ratios(ticker, ratios, 'dividendYield'),
@@ -45,7 +45,9 @@ def extract_stock_info(ticker):
         'forwardPE': check_ratios(ticker, ratios, 'forwardPE'),
         'trailingEps': check_ratios(ticker, ratios, 'trailingEps'),
         'forwardEps': check_ratios(ticker, ratios, 'forwardEps'),
-        'ebitda': check_ratios(ticker, ratios, 'ebitda')
+        'ebitda': check_ratios(ticker, ratios, 'ebitda'),
+        'freeCashflow': check_ratios(ticker, ratios, 'freeCashflow'),
+        'marketCap': check_ratios(ticker, ratios, 'marketCap')
     }
     
     return data
@@ -54,7 +56,7 @@ def create_database():
     conn = sqlite3.connect('FlaskApp/stock_info.db')
     cursor = conn.cursor()
 
-    # Create tables with the new structure including the company name
+    # Create tables with the new structure including the company name, freeCashflow, and marketCap
     cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
                         id INTEGER PRIMARY KEY,
                         name TEXT,
@@ -73,6 +75,8 @@ def create_database():
                         trailingEps REAL,
                         forwardEps REAL,
                         ebitda REAL,
+                        freeCashflow REAL,
+                        marketCap REAL,
                         UNIQUE (ticker)
                     )''')
 
@@ -82,19 +86,19 @@ def create_database():
 def insert_data_into_database(conn, ticker, data):
     cursor = conn.cursor()
 
-    # Prepare the data for insertion or update including the company name
+    # Prepare the data for insertion or update including the company name, freeCashflow, and marketCap
     values = (data['name'], ticker, data['profitMargins'], data['payoutRatio'], data['dividendYield'],
               data['twoHundredDayAverage'], data['fiftyDayAverage'], data['totalCash'],
               data['totalDebt'], data['earningsGrowth'], data['revenueGrowth'],
               data['trailingPE'], data['forwardPE'], data['trailingEps'], data['forwardEps'],
-              data['ebitda'])
+              data['ebitda'], data['freeCashflow'], data['marketCap'])
 
-    # Insert or update the data including the company name
+    # Insert or update the data including the company name, freeCashflow, and marketCap
     cursor.execute('''INSERT INTO stocks (name, ticker, profitMargins, payoutRatio, dividendYield,
                                           twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt,
                                           earningsGrowth, revenueGrowth, trailingPE, forwardPE,
-                                          trailingEps, forwardEps, ebitda)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                          trailingEps, forwardEps, ebitda, freeCashflow, marketCap)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                       ON CONFLICT(ticker) DO UPDATE SET
                       name=excluded.name,
                       profitMargins=excluded.profitMargins,
@@ -110,7 +114,9 @@ def insert_data_into_database(conn, ticker, data):
                       forwardPE=excluded.forwardPE,
                       trailingEps=excluded.trailingEps,
                       forwardEps=excluded.forwardEps,
-                      ebitda=excluded.ebitda''', values)
+                      ebitda=excluded.ebitda,
+                      freeCashflow=excluded.freeCashflow,
+                      marketCap=excluded.marketCap''', values)
 
     conn.commit()
 
@@ -147,6 +153,7 @@ def main():
         time.sleep(1)
     conn.close()
 
+    # Uncomment the following line if you want to print the database contents
     # printDB()
 
 if __name__ == "__main__":

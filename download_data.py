@@ -54,7 +54,7 @@ def dividendsCheck(ticker):
     return dividends
 
 if __name__ == '__main__':
-	ticker = 'MSFT'
+	ticker = 'AMZN'
 
 	start_time = time.time()
 	stock = yf.Ticker(ticker)
