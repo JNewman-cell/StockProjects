@@ -577,7 +577,7 @@
 							},
 							callback: function(value, index, values) {
 								if (value >= 1e12 || value <= -1e12) {
-									return label + ': ' + (value / 1e12).toFixed(1) + 't';
+									return (value / 1e12).toFixed(1) + 't';
 								} else if (value >= 1e9 || value <= -1e9) {
 									return (value / 1e9).toFixed(1) + 'b';
 								} else if (value >= 1e6 || value <= -1e6) {
@@ -704,7 +704,7 @@
 							},
 							callback: function(value, index, values) {
 								if (value >= 1e12 || value <= -1e12) {
-									return label + ': ' + (value / 1e12).toFixed(1) + 't';
+									return (value / 1e12).toFixed(1) + 't';
 								} else if (value >= 1e9 || value <= -1e9) {
 									return (value / 1e9).toFixed(1) + 'b';
 								} else if (value >= 1e6 || value <= -1e6) {
