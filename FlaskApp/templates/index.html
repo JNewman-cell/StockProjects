@@ -553,7 +553,9 @@
 							label: function(context) {
 								var label = context.dataset.label || '';
 								var value = context.parsed.y;
-								if (value >= 1e9 || value <= -1e9) {
+								if (value >= 1e12 || value <= -1e12) {
+									return label + ': ' + (value / 1e12).toFixed(1) + 't';
+								} else if (value >= 1e9 || value <= -1e9) {
 									return label + ': ' + (value / 1e9).toFixed(1) + 'b';
 								} else if (value >= 1e6 || value <= -1e6) {
 									return label + ': ' + (value / 1e6).toFixed(1) + 'm';
@@ -574,7 +576,9 @@
 								size: 16
 							},
 							callback: function(value, index, values) {
-								if (value >= 1e9 || value <= -1e9) {
+								if (value >= 1e12 || value <= -1e12) {
+									return label + ': ' + (value / 1e12).toFixed(1) + 't';
+								} else if (value >= 1e9 || value <= -1e9) {
 									return (value / 1e9).toFixed(1) + 'b';
 								} else if (value >= 1e6 || value <= -1e6) {
 									return (value / 1e6).toFixed(1) + 'm';
@@ -676,7 +680,9 @@
 							label: function(context) {
 								var label = context.dataset.label || '';
 								var value = context.parsed.y;
-								if (value >= 1e9 || value <= -1e9) {
+								if (value >= 1e12 || value <= -1e12) {
+									return label + ': ' + (value / 1e12).toFixed(1) + 't';
+								} else if (value >= 1e9 || value <= -1e9) {
 									return label + ': ' + (value / 1e9).toFixed(1) + 'b';
 								} else if (value >= 1e6 || value <= -1e6) {
 									return label + ': ' + (value / 1e6).toFixed(1) + 'm';
@@ -697,7 +703,9 @@
 								size: 16
 							},
 							callback: function(value, index, values) {
-								if (value >= 1e9 || value <= -1e9) {
+								if (value >= 1e12 || value <= -1e12) {
+									return label + ': ' + (value / 1e12).toFixed(1) + 't';
+								} else if (value >= 1e9 || value <= -1e9) {
 									return (value / 1e9).toFixed(1) + 'b';
 								} else if (value >= 1e6 || value <= -1e6) {
 									return (value / 1e6).toFixed(1) + 'm';
