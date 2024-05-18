@@ -1,9 +1,5 @@
 # StockProjects
 
-## Update requirements.txt:
-
-[![Keep requirements.txt Updated](https://github.com/JNewman-cell/StockProjects/actions/workflows/requirements.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/requirements.yml)
-
 ## Scheduled Ticker Pulling, Cleaning, and Custom Trie Creation:
 
 [![Pull and Clean Tickers and Make Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml)
