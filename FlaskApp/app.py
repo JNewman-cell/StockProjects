@@ -32,7 +32,7 @@ def format_percentage(value):
 	# Assumes the input value is a decimal (e.g., 0.10 for 10%)
 	return f"{value * 100:.2f}%"
 
-def format_price(value):
+def format_dec(value):
 	if value == None:
 		return 'N/A'
 	# Assumes the input value is a decimal (e.g., 0.10 for 10%)
@@ -57,21 +57,17 @@ def format_value(value):
 		# Return the value as is
 		return f"{value}"
 
-def format_price(value):
-    # Assumes the input value is a decimal (e.g., 0.10 for 10%)
-    return f"{value:.2f}"
-
 @app.route('/companyinfo', methods=['GET'])
 def companyinfo():
     ticker = request.args.get('ticker')
     conn = sqlite3.connect('stock_info.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps, ebitda FROM stocks WHERE ticker = ?", (ticker,))
+    cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps, ebitda, name FROM stocks WHERE ticker = ?", (ticker,))
     data = cursor.fetchall()
     columns = ['Profit Margin', 'Payout Ratio', 'Dividend Yield',
                '200 Day MA', '50 Day MA', 'Total Cash', 'Total Debt',
                'Earnings Growth', 'Revenue Growth', 'Trailing PE', 'Forward PE',
-               'Trailing EPS', 'Forward EPS', 'EBITDA']
+               'Trailing EPS', 'Forward EPS', 'EBITDA', 'name']
     formatted_data = []
 
     for row in data:
@@ -83,10 +79,10 @@ def companyinfo():
         formatted_row[7] = format_percentage(row[7])  # Earnings Growth
         formatted_row[8] = format_percentage(row[8])  # Revenue Growth
         # Formatting prices
-        formatted_row[3] = '$'+format_price(row[3])  # 200 Day Moving Average
-        formatted_row[4] = '$'+format_price(row[4])  # 50 Day Moving Average
-        formatted_row[9] = format_price(row[9])  # Trailing PE
-        formatted_row[10] = format_price(row[10]) # Forward PE
+        formatted_row[3] = '$'+format_dec(row[3])  # 200 Day Moving Average
+        formatted_row[4] = '$'+format_dec(row[4])  # 50 Day Moving Average
+        formatted_row[9] = format_dec(row[9])  # Trailing PE
+        formatted_row[10] = format_dec(row[10]) # Forward PE
         # Formatting values
         formatted_row[5] = format_value(row[5])  # Total Cash
         formatted_row[6] = format_value(row[6])  # Total Debt
@@ -95,7 +91,7 @@ def companyinfo():
         formatted_data.append(dict(zip(columns, formatted_row)))
 
     conn.close()
-    # print(formatted_data)
+    print(formatted_data)
 
     return jsonify(formatted_data)
 

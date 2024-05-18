@@ -42,7 +42,7 @@
             </div>
         </div>
 		<div class="row justify-content-center" id="error-message"></div>
-		<div class="row justify-content-center company-ticker" id="company ticker"></div>
+		<div class="row justify-content-center company-ticker" id="company name"></div>
 		<div class="row justify-content-center big-text" id="TTMTitle"></div>
 		<div id="stock-data" class="mt-3">
             <!-- Stock data will be displayed here -->
@@ -145,9 +145,6 @@
             $('#ticker').val('');
             $('#tickerList').empty();
 
-			var companyTickerElement = document.getElementById('company ticker');
-			companyTickerElement.innerText = selectedTicker;
-
 			$.getJSON('/stockprice', {ticker: selectedTicker})
 			.done(function(data) {
 				// Check if data is available
@@ -195,6 +192,9 @@
 				var stockDataTitle = document.getElementById('TTMTitle');
 				stockDataTitle.innerText = 'Trailing Twelve Months:'
 				stockDataTitle.style.fontWeight = 'bold';
+
+				var companyNameElement = document.getElementById('company name');
+				companyNameElement.innerText = data[0]['name'];
 
 				// console.log(data);
 

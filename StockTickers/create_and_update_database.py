@@ -22,9 +22,9 @@ def extract_financial_data(ticker, years):
 	stock = yf.Ticker(ticker)
 
 	income_stmt = stock.income_stmt
-	time.sleep(1)
+	# time.sleep(1)
 	cashflow = stock.cashflow
-	time.sleep(1)
+	# time.sleep(1)
 	balance_sheet = stock.balance_sheet
 	print(ticker)
 	# print(income_stmt)
