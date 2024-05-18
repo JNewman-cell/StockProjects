@@ -60,14 +60,14 @@ def format_value(value):
 @app.route('/companyinfo', methods=['GET'])
 def companyinfo():
     ticker = request.args.get('ticker')
-    conn = sqlite3.connect('stock_info.db')
+    conn = sqlite3.connect('FlaskApp/stock_info.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps, ebitda, name FROM stocks WHERE ticker = ?", (ticker,))
+    cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps, ebitda, freeCashflow, marketCap, name FROM stocks WHERE ticker = ?", (ticker,))
     data = cursor.fetchall()
     columns = ['Profit Margin', 'Payout Ratio', 'Dividend Yield',
                '200 Day MA', '50 Day MA', 'Total Cash', 'Total Debt',
                'Earnings Growth', 'Revenue Growth', 'Trailing PE', 'Forward PE',
-               'Trailing EPS', 'Forward EPS', 'EBITDA', 'name']
+               'Trailing EPS', 'Forward EPS', 'EBITDA', 'Free Cash Flow', 'Market Cap', 'Name']
     formatted_data = []
 
     for row in data:
@@ -82,11 +82,13 @@ def companyinfo():
         formatted_row[3] = '$'+format_dec(row[3])  # 200 Day Moving Average
         formatted_row[4] = '$'+format_dec(row[4])  # 50 Day Moving Average
         formatted_row[9] = format_dec(row[9])  # Trailing PE
-        formatted_row[10] = format_dec(row[10]) # Forward PE
+        formatted_row[10] = format_dec(row[10])  # Forward PE
         # Formatting values
         formatted_row[5] = format_value(row[5])  # Total Cash
         formatted_row[6] = format_value(row[6])  # Total Debt
         formatted_row[13] = format_value(row[13])  # EBITDA
+        formatted_row[14] = format_value(row[14])  # Free Cash Flow
+        formatted_row[15] = format_value(row[15])  # Market Cap
 
         formatted_data.append(dict(zip(columns, formatted_row)))
 
