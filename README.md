@@ -11,11 +11,13 @@ The initial step involves extracting stock ticker symbols and their correspondin
 For each valid stock ticker, detailed financial and dividend data is fetched using the Yahoo Finance API (`yfinance` library):
 - **Financial Metrics:** Key financial ratios and metrics such as profit margins, payout ratio, dividend yield, cash flow, and market capitalization are extracted and stored.
 - **Dividend Data:** Historical dividend data over the past 15 years is fetched and filtered to include only valid dividend payments.
+- **Stock Info:** TTM values of important ratios and stock information along with recent financials.
 
 #### 3. **Storing Data in SQLite Databases**
 The extracted data is stored in two SQLite databases:
 - **Financial Metrics Database:** This database stores comprehensive financial information, including company name, cash flow, earnings growth, revenue growth, PE ratios, and market cap.
 - **Dividend Data Database:** This database keeps track of historical dividend payments, indexed by ticker and date.
+- **Stock Info Database:** This database keeps track of TTM financial ratios and earnings growth, indexed by ticker.
 
 #### 4. **Efficient Search and Autocomplete with Trie Data Structure**
 To facilitate quick and efficient searching of stock tickers based on user input, a Trie data structure is employed:
