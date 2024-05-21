@@ -1,6 +1,7 @@
 name: Keep requirements.txt Updated
 
 on:
+  workflow_dispatch:  # Enable manual trigger
   # push:
   #   branches:
   #     - main
