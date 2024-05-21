@@ -85,60 +85,6 @@ Using automated workflows to manage data extraction, cleaning, storage, and test
 
 This approach leverages the power of automation, scheduled tasks, and version control to create a robust, reliable, and user-friendly stock research web application. By ensuring that data is always current and accurate, and by automating time-consuming tasks, this method provides a solid foundation for delivering high-quality financial insights to users. The combination of efficient data processing, automated workflows, and regular testing enhances both the functionality and maintainability of the application.
 
-### Summary of Automated Backend Processes for Stock Research Web Application
-
-The stock research web application relies on a series of automated processes to fetch, clean, store, and test stock market data. These processes run on a scheduled basis using GitHub Actions, ensuring that the application maintains up-to-date and accurate data for users. Below is an overview of how these automated workflows function:
-
-#### 1. **Pull and Clean Tickers and Create Trie Autocomplete**
-
-**Workflow Overview:**
-- **Schedule:** Runs every Sunday at 12:20 AM PST.
-- **Purpose:** Fetch new stock tickers, clean the datasets, and update the Trie data structure for efficient autocomplete functionality.
-
-**Steps:**
-1. **Set Up Node.js and Python:** Ensure the environment has the necessary versions of Node.js and Python.
-2. **Pull Ticker Data:** Download the latest NYSE and NASDAQ ticker symbols from a public repository.
-3. **Clean Ticker Data:** Run scripts to clean the downloaded ticker datasets, removing any entries with invalid market caps.
-4. **Create Trie:** Populate a Trie data structure with the cleaned ticker symbols and their market caps for fast search and autocomplete.
-5. **Commit Updates:** Add and commit the cleaned datasets and the updated Trie data structure to the repository.
-
-**Key Components:**
-- **Node.js and Python Setup:** Ensures the environment is prepared for the execution of scripts.
-- **Data Cleaning Scripts:** `clean_datasets.py` processes the downloaded tickers.
-- **Trie Creation Script:** `create_Trie.py` constructs the Trie for autocomplete.
-- **Version Control:** Updates are committed to the GitHub repository for consistency and version tracking.
-
-#### 2. **Test Custom Trie Autocomplete**
-
-**Workflow Overview:**
-- **Schedule:** Runs every Sunday at 12:20 AM PST, right after the tickers are cleaned and Trie is created.
-- **Purpose:** Verify the correctness of the Trie autocomplete functionality.
-
-**Steps:**
-1. **Set Up Node.js and Python:** Ensure the environment is set up correctly.
-2. **Install Dependencies:** Install required Python packages.
-3. **Run Tests:** Execute the `test_Trie.py` script to validate the Trie’s functionality.
-
-**Key Components:**
-- **Automated Testing:** Ensures the Trie data structure works as expected.
-- **Test Script:** `test_Trie.py` includes unit tests to check for accurate prefix matching and market cap sorting.
-
-#### 3. **Update Stock Dividends Database (SQLite)**
-
-**Workflow Overview:**
-- **Schedule:** Runs every Sunday at 1:00 AM PST.
-- **Purpose:** Update the SQLite database with the latest dividend information for tracked stocks.
-
-**Steps:**
-1. **Set Up Node.js and Python:** Prepare the environment.
-2. **Install Dependencies:** Ensure all required packages are installed.
-3. **Update Dividend Data:** Run the `create_and_update_dividend_database.py` script to fetch and store the latest dividend data in the SQLite database.
-4. **Commit Updates:** Add and commit the updated dividend database to the repository.
-
-**Key Components:**
-- **Dividend Data Script:** `create_and_update_dividend_database.py` fetches dividend data using `yfinance` and updates the SQLite database (`dividend_data.db`).
-- **Version Control:** Keeps the dividend database updated and versioned within the repository.
-
 ## Scheduled Ticker Pulling, Cleaning, and Custom Trie Creation:
 
 [![Pull and Clean Tickers and Make Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml)
