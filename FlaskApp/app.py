@@ -60,7 +60,7 @@ def format_value(value):
 @app.route('/companyinfo', methods=['GET'])
 def companyinfo():
     ticker = request.args.get('ticker')
-    conn = sqlite3.connect('FlaskApp/stock_info.db')
+    conn = sqlite3.connect('stock_info.db')
     cursor = conn.cursor()
     cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps, ebitda, freeCashflow, marketCap, name FROM stocks WHERE ticker = ?", (ticker,))
     data = cursor.fetchall()
