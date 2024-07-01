@@ -2,7 +2,7 @@ name: Update Stock Dividends DB (SQLite)
 
 on:
   schedule:
-    - cron: '0 8 * * 0'  # Runs every Sunday at 1:00 AM PST
+    - cron: '0 8 * * *'  # Runs every Sunday at 1:00 AM PST
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
