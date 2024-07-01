@@ -2,7 +2,7 @@ name: Pull and Clean Tickers and Make Trie Autocomplete
 
 on:
   schedule:
-    - cron: '20 7 * * 0'  # Runs every Sunday at 12:20 AM PST
+    - cron: '20 * * * 0'  # Runs every Sunday at 12:20 AM PST
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
