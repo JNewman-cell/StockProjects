@@ -42,8 +42,8 @@
             </div>
         </div>
 		<div class="row justify-content-center" id="error-message"></div>
-		<div class="row justify-content-center company-ticker" id="company name"></div>
-		<div class="row justify-content-center big-text" id="TTMTitle"></div>
+		<div class="row justify-content-center text-center company-ticker" id="company name"></div>
+		<div class="row justify-content-center text-center big-text" id="TTMTitle"></div>
 		<div id="stock-data" class="mt-3">
             <!-- Stock data will be displayed here -->
         </div>
@@ -190,8 +190,8 @@
 				stockDataDiv.empty(); // Clear previous data
 
 				var stockDataTitle = document.getElementById('TTMTitle');
-				stockDataTitle.innerText = 'Trailing Twelve Months:'
-				stockDataTitle.style.fontWeight = 'bold';
+				stockDataTitle.innerText = 'Financial Information For Trailing Twelve Months:'
+				// stockDataTitle.style.fontWeight = 'bold';
 
 				var companyNameElement = document.getElementById('company name');
 				companyNameElement.innerText = data[0]['Name'];
@@ -212,7 +212,7 @@
 					$.each(displayOrder, function(index, field) {
 						var value = data[0][field];
 						// Create a column for each field-value pair
-						var column = $('<div class="col-md-3"></div>');
+						var column = $('<div class="col-md-3 text-center"></div>');
 						
 						// Add the field and value as text inside the column
 						column.append('<p class="big-text"><strong>' + field + ':</strong> ' + value + '</p>');
