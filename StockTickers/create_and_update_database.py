@@ -22,42 +22,22 @@ def extract_financial_data(ticker, years):
 	stock = yf.Ticker(ticker)
 
 	income_stmt = stock.income_stmt
-	# time.sleep(1)
 	cashflow = stock.cashflow
-	# time.sleep(1)
 	balance_sheet = stock.balance_sheet
-	print(ticker)
-	# print(income_stmt)
-	# print(cashflow)
-	# print(balance_sheet)
+	print('Extracting Data for Ticker: '+ticker)
 
-	for year in years:
-		income_stmt_columns_as_strings = income_stmt.columns.astype(str)
-		index_of_year_income = None
-		for idx, col_name in enumerate(income_stmt_columns_as_strings):
-			if str(year) in col_name:
-				index_of_year_income = idx
-				break
-		# print(index_of_year_income)
-		
-		# Check cash flow statement
-		cashflow_columns_as_strings = cashflow.columns.astype(str)
-		index_of_year_cashflow = None
-		for idx, col_name in enumerate(cashflow_columns_as_strings):
-			if str(year) in col_name:
-				index_of_year_cashflow = idx
-				break
-		# print(index_of_year_cashflow)
-		
-		# Check balance sheet statement
-		balance_sheet_columns_as_strings = balance_sheet.columns.astype(str)
-		index_of_year_balance_sheet = None
-		for idx, col_name in enumerate(balance_sheet_columns_as_strings):
-			if str(year) in col_name:
-				index_of_year_balance_sheet = idx
-				break
-		# print(index_of_year_balance_sheet)
+	def find_year_index(columns, year):
+        for idx, col_name in enumerate(columns.astype(str)):
+            if str(year) in col_name:
+                return idx
+        return None
 
+    for year in years:
+        index_of_year_income = find_year_index(income_stmt.columns, year)
+        index_of_year_cashflow = find_year_index(cashflow.columns, year)
+        index_of_year_balance_sheet = find_year_index(balance_sheet.columns, year)
+
+		# only want years where all data is found, some new data has blanks in certain sheets
 		if index_of_year_income == None or index_of_year_balance_sheet == None or index_of_year_cashflow == None:
 			print('skipped year: ' + str(year))
 			continue
@@ -83,24 +63,10 @@ def extract_financial_data(ticker, years):
 		data[year] = financials
 	return data
 
-errorsPerField = {
-	'Total Revenue':[],
-	'Free Cash Flow':[],
-	'Net Income':[],
-	'Diluted EPS':[],
-	'Cash And Cash Equivalents':[],
-	'Total Debt':[],
-	'Ordinary Shares Number':[],
-}
-
 def check_statement(ticker, statement, field):
 	try:
 		value = statement.loc[field].values[0]
 	except Exception as e:
-		if field != 'Stock Based Compensation' and field != 'EBITDA':
-			print("An error occurred for field: "+field)
-			if ticker not in errorsPerField[field]:
-				errorsPerField[field].append(ticker)
 		value = 0
 	return value
 
@@ -129,17 +95,22 @@ def create_database():
     return conn
 
 def insert_data_into_database(conn, ticker, data):
-    cursor = conn.cursor()
+	cursor = conn.cursor()
 
-    for year, financials in data.items():
-        cursor.execute('''INSERT OR IGNORE INTO stocks (ticker, year, revenue, ebitda, fcf, sbc, net_income, eps, cash, debt, shares_outstanding)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                       (ticker, year, financials['Revenue'], financials['EBITDA'], financials['FCF'],
-                        financials['SBC'], financials['NetIncome'], financials['EPS'], financials['Cash'],
-                        financials['Debt'], financials['SharesOutstanding']))
+	# Prepare a list of tuples to be inserted
+	rows_to_insert = [(ticker, year, financials['Revenue'], financials['EBITDA'], financials['FCF'],
+						financials['SBC'], financials['NetIncome'], financials['EPS'], financials['Cash'],
+						financials['Debt'], financials['SharesOutstanding'])
+						for year, financials in data.items()]
 
-    conn.commit()
+	# Use executemany to insert all rows in a single operation
+	cursor.executemany('''INSERT OR IGNORE INTO stocks (ticker, year, revenue, ebitda, fcf, sbc, net_income, eps, cash, debt, shares_outstanding)
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', rows_to_insert)
+	end_time = time.time()
 
+	conn.commit()
+
+# prints out the entire database for debugging
 def printDB():
     try:
         # Connect to SQLite database
@@ -190,11 +161,12 @@ def main():
 	for ticker in tickers:
 		data = extract_financial_data(ticker, year_range)
 		insert_data_into_database(conn, ticker, data)
+		# sleep to prevent API rate limit trigger
 		time.sleep(1)
 	conn.close()
 
+	# Uncomment the following line if you want to print the database contents
 	# print(errorsPerField)
-
 	# printDB()
 
 if __name__ == "__main__":

@@ -54,14 +54,16 @@ def create_database():
     return conn
 
 def insert_data_into_database(conn, ticker, data):
-	cursor = conn.cursor()
+    cursor = conn.cursor()
 
-	for dateamount in data:
-		cursor.execute('''INSERT OR IGNORE INTO stocks (ticker, date, dividend)
-							VALUES (?, ?, ?)''',
-						(ticker, dateamount['date'], dateamount['amount']))
+    # Prepare a list of tuples to be inserted
+    rows_to_insert = [(ticker, dateamount['date'], dateamount['amount']) for dateamount in data]
 
-	conn.commit()
+    # Use executemany to insert all rows in a single operation
+    cursor.executemany('''INSERT OR IGNORE INTO stocks (ticker, date, dividend)
+                          VALUES (?, ?, ?)''', rows_to_insert)
+
+    conn.commit()
 
 def printDB():
     try:
@@ -111,6 +113,7 @@ def main():
         time.sleep(1)
     conn.close()
 
+	# Uncomment the following line if you want to print the database contents
     # printDB()
 
 if __name__ == "__main__":
