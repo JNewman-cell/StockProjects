@@ -27,15 +27,15 @@ def extract_financial_data(ticker, years):
 	print('Extracting Data for Ticker: '+ticker)
 
 	def find_year_index(columns, year):
-        for idx, col_name in enumerate(columns.astype(str)):
-            if str(year) in col_name:
-                return idx
-        return None
+		for idx, col_name in enumerate(columns.astype(str)):
+			if str(year) in col_name:
+				return idx
+		return None
 
-    for year in years:
-        index_of_year_income = find_year_index(income_stmt.columns, year)
-        index_of_year_cashflow = find_year_index(cashflow.columns, year)
-        index_of_year_balance_sheet = find_year_index(balance_sheet.columns, year)
+	for year in years:
+		index_of_year_income = find_year_index(income_stmt.columns, year)
+		index_of_year_cashflow = find_year_index(cashflow.columns, year)
+		index_of_year_balance_sheet = find_year_index(balance_sheet.columns, year)
 
 		# only want years where all data is found, some new data has blanks in certain sheets
 		if index_of_year_income == None or index_of_year_balance_sheet == None or index_of_year_cashflow == None:
@@ -106,7 +106,6 @@ def insert_data_into_database(conn, ticker, data):
 	# Use executemany to insert all rows in a single operation
 	cursor.executemany('''INSERT OR IGNORE INTO stocks (ticker, year, revenue, ebitda, fcf, sbc, net_income, eps, cash, debt, shares_outstanding)
 							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', rows_to_insert)
-	end_time = time.time()
 
 	conn.commit()
 
