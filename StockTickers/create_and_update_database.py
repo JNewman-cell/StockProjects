@@ -17,6 +17,12 @@ def extract_tickers_from_csv(file_path):
 				tickers.append(row['Ticker'])
 	return tickers
 
+def find_year_index(columns, year):
+	for idx, col_name in enumerate(columns.astype(str)):
+		if str(year) in col_name:
+			return idx
+	return None
+
 def extract_financial_data(ticker, years):
 	data = {}
 	stock = yf.Ticker(ticker)
@@ -25,12 +31,6 @@ def extract_financial_data(ticker, years):
 	cashflow = stock.cashflow
 	balance_sheet = stock.balance_sheet
 	print('Extracting Data for Ticker: '+ticker)
-
-	def find_year_index(columns, year):
-		for idx, col_name in enumerate(columns.astype(str)):
-			if str(year) in col_name:
-				return idx
-		return None
 
 	for year in years:
 		index_of_year_income = find_year_index(income_stmt.columns, year)
