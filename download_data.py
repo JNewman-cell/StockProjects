@@ -2,6 +2,7 @@ import yfinance as yf
 import datetime
 import time
 import pytz
+import sqlite3
 
 def time_api_call(route_function):
     def wrapper(*args, **kwargs):
@@ -10,6 +11,37 @@ def time_api_call(route_function):
         end_time = time.time()
         return end_time - start_time
     return wrapper
+
+# Function to connect to the SQLite database
+def connect_db():
+    conn = sqlite3.connect('FlaskApp/financial_data.db')
+    return conn
+
+# Function to connect to the dividend SQLite database
+def connect_dividend_db():
+    conn = sqlite3.connect('FlaskApp/dividend_data.db')
+    return conn
+
+@time_api_call
+def companyinfo_api(ticker):
+    stock = yf.Ticker(ticker)
+    print(stock.info)
+
+@time_api_call
+def companyinfo_database(ticker):
+    conn = sqlite3.connect('FlaskApp/stock_info.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT profitMargins, payoutRatio, dividendYield, twoHundredDayAverage, fiftyDayAverage, totalCash, totalDebt, earningsGrowth, revenueGrowth, trailingPE, forwardPE, trailingEps, forwardEps, ebitda, freeCashflow, marketCap, name FROM stocks WHERE ticker = ?", (ticker,))
+    data = cursor.fetchall()
+    columns = ['Profit Margin', 'Payout Ratio', 'Dividend Yield',
+               '200 Day MA', '50 Day MA', 'Total Cash', 'Total Debt',
+               'Earnings Growth', 'Revenue Growth', 'Trailing PE', 'Forward PE',
+               'Trailing EPS', 'Forward EPS', 'EBITDA', 'Free Cash Flow', 'Market Cap', 'Name']
+    formatted_data = []
+
+    formatted_data.append(dict(zip(columns, data)))
+
+    conn.close()
 
 @time_api_call
 def prices(ticker):
@@ -26,13 +58,13 @@ def prices(ticker):
     return {'dates': dates, 'prices': prices}
 
 @time_api_call
-def dividends(ticker):
+def dividend_api(ticker):
     # Fetch dividend data using yfinance
     ticker_obj = yf.Ticker(ticker)
     
     # Define date range for the last 10 years
     end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days=365 * 10)
+    start_date = end_date - datetime.timedelta(days=365 * 15)
     start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
 
     # Fetch and filter dividend data
@@ -40,7 +72,30 @@ def dividends(ticker):
     dividends = [{'date': date.strftime('%Y-%m'), 'amount': float(amount)} for date, amount in div_data.items() if amount > 0]
 
     return dividends
-  
+
+@time_api_call
+def dividend_database(ticker):
+    conn = connect_dividend_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT date, dividend FROM stocks WHERE ticker = ? ORDER BY date", (ticker,))
+    data = cursor.fetchall()
+    conn.close()
+
+@time_api_call
+def financials_api(ticker):
+    stock = yf.Ticker(ticker)
+    income_stmt = stock.income_stmt
+    cashflow = stock.cashflow
+    balance_sheet = stock.balance_sheet
+
+@time_api_call
+def financials_database(ticker):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT year, revenue, ebitda, fcf, sbc, net_income, eps, cash, debt, shares_outstanding FROM stocks WHERE ticker = ? ORDER BY year", (ticker,))
+    data = cursor.fetchall()
+    conn.close()
+
 def dividendsCheck(ticker):
     ticker = ticker
     # Fetch dividend data using yfinance
@@ -54,48 +109,32 @@ def dividendsCheck(ticker):
     return dividends
 
 if __name__ == '__main__':
-	ticker = 'AMZN'
+    ticker = 'AMZN'
 
-	start_time = time.time()
-	stock = yf.Ticker(ticker)
-	print(stock.info)
-    # income_stmt = stock.income_stmt
-    # cashflow = stock.cashflow
-    # balance_sheet = stock.balance_sheet
-    # end_time = time.time()
-    # print(end_time-start_time)
-    # start_time = time.time()
-    # end_date = datetime.datetime.now()
-    # start_date = end_date - datetime.timedelta(days=365 * 15)
-    # start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
+    api_times = {}
+    db_times = {}
+    differences = {}
 
-    # # Fetch and filter dividend data
-    # div_data = stock.history(start=start_date, end=end_date).Dividends
-    # end_time = time.time()
-    # print(end_time-start_time)
+    # Measure times
+    api_times['companyinfo'] = companyinfo_api(ticker)
+    db_times['companyinfo'] = companyinfo_database(ticker)
+    db_times['dividends'] = dividend_database(ticker)
+    api_times['dividends'] = dividend_api(ticker)
+    db_times['financials'] = financials_database(ticker)
+    api_times['financials'] = financials_api(ticker)
 
-    # performance testing for APIs
-    # # List of 100 stock tickers
-    # tickers = [
-    #     "AAPL", "MSFT", "AMZN", "GOOGL", "META", "TSLA", "BRK-A", "JNJ", "V", "WMT",
-    #     "PG", "JPM", "MA", "NVDA", "DIS", "HD", "BAC", "UNH", "INTC", "VZ",
-    #     "PYPL", "CMCSA", "ADBE", "NFLX", "PFE", "KO", "MRK", "T", "CRM", "PEP",
-    #     "ABBV", "NKE", "XOM", "CSCO", "CVX", "BA", "WFC", "TMO", "ABT", "PM",
-    #     "ORCL", "AMGN", "AMD", "ACN", "IBM", "QCOM", "MDT", "DHR", "HON", "NEE",
-    #     "LOW", "COST", "SBUX", "INTU", "UNP", "MMM", "LMT", "TXN", "RTX", "LIN",
-    #     "UPS", "NOW", "GS", "MS", "BDX", "ISRG", "FIS", "GILD", "SYK",
-    #     "CVS", "DE", "SPGI", "VRTX", "VRTX", "ZTS", "TMUS", "AMAT", "CL", "MO",
-    #     "BKNG", "CAT", "FDX", "FISV", "BIIB", "CI", "MMC", "ADI", "ADP", "ITW",
-    #     "PNC", "TFC", "DUK", "PLD", "ECL", "BSX", "EW", "SO", "GM"
-    # ]
+    # Calculate differences
+    for key in api_times:
+        differences[key] = api_times[key] - db_times[key]
 
-    # # Measure average time for prices
-    # prices_total_time = sum(prices(ticker) for ticker in tickers)
-    # prices_avg_time = prices_total_time / (len(tickers))
+    total_difference = sum(differences.values())
+    total_api_time = sum(api_times.values())
+    total_db_time = sum(db_times.values())
+    percent_difference = (total_difference / total_api_time) * 100 if total_api_time != 0 else 0
 
-    # # Measure average time for dividends
-    # dividends_total_time = sum(dividends(ticker) for ticker in tickers)
-    # dividends_avg_time = dividends_total_time / (len(tickers))
+    # Output the results
+    for key in differences:
+        print(f"{key} difference: {differences[key]:.4f} seconds")
 
-    # print(f"Average time taken for prices (over {len(tickers)} stocks): {prices_avg_time*1000} milliseconds")
-    # print(f"Average time taken for dividends (over {len(tickers)} stocks): {dividends_avg_time*1000} milliseconds")
+    print(f"Total difference: {total_difference:.4f} seconds")
+    print(f"Total percent difference: {percent_difference:.2f}%")

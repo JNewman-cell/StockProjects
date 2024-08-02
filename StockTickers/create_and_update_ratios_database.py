@@ -3,17 +3,6 @@ import yfinance as yf
 import csv
 import time
 
-tickers = []
-
-def extract_tickers_from_csv(file_path):
-    with open(file_path, newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            frequency = row['Market Cap']
-            if frequency != 'N/A':
-                tickers.append(row['Ticker'])
-    return tickers
-
 def check_ratios(ticker, info, field):
     try:
         value = info[field]
@@ -139,13 +128,31 @@ def printDB():
         if conn:
             conn.close()
 
+def extract_all_valid_tickers_from_csvs():
+	"""
+    Extract all the tickers from the file path of cleaned ticker csv files.
+
+    Parameters:
+	None
+
+    Returns:
+    list: all tickers that have financial data in the yahoo finance API.
+    """
+	tickers = []
+	files = ['StockTickers/nasdaq_tickers_cleaned.csv', 'StockTickers/nyse_tickers_cleaned.csv']
+	for file_path in files:
+		with open(file_path, newline='') as csvfile:
+			reader = csv.DictReader(csvfile)
+			for row in reader:
+				frequency = row['Market Cap']
+				if frequency != 'N/A':
+					tickers.append(row['Ticker'])
+	return tickers
+
 def main():
     conn = create_database()
 
-    csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'
-    csv_file_path2 = 'StockTickers/nyse_tickers_cleaned.csv'
-    extract_tickers_from_csv(csv_file_path)
-    extract_tickers_from_csv(csv_file_path2)
+    tickers = extract_all_valid_tickers_from_csvs()
 
     for ticker in tickers:
         data = extract_stock_info(ticker)

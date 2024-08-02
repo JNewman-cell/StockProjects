@@ -6,17 +6,6 @@ import csv
 import time
 from datetime import datetime
 
-tickers = []
-
-def extract_tickers_from_csv(file_path):
-	with open(file_path, newline='') as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			frequency = row['Market Cap']
-			if frequency != 'N/A':
-				tickers.append(row['Ticker'])
-	return tickers
-
 def find_year_index(columns, year):
 	for idx, col_name in enumerate(columns.astype(str)):
 		if str(year) in col_name:
@@ -24,6 +13,16 @@ def find_year_index(columns, year):
 	return None
 
 def extract_financial_data(ticker, years):
+	"""
+    Extract the yearly financial data of a ticker for the amount of years since 2020.
+
+    Parameters:
+    ticker (str): The ticker symbol of the company.
+	years (list): The years that we are extracting data for.
+
+    Returns:
+    dict: holding each years data, encoded with the year they were taken from
+    """
 	data = {}
 	stock = yf.Ticker(ticker)
 
@@ -71,28 +70,36 @@ def check_statement(ticker, statement, field):
 	return value
 
 def create_database():
-    conn = sqlite3.connect('FlaskApp/financial_data.db')
-    cursor = conn.cursor()
+	"""
+    Creates the database for the yearly financials of each company.
 
-    # Create tables
-    cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
-                        id INTEGER PRIMARY KEY,
-                        ticker TEXT NOT NULL,
-                        year INTEGER NOT NULL,
-                        revenue REAL,
-                        ebitda REAL,
-                        fcf REAL,
-                        sbc REAL,
-                        net_income REAL,
-                        eps REAL,
-                        cash REAL,
-                        debt REAL,
-                        shares_outstanding REAL,
-                        UNIQUE (ticker, year)
-                    )''')
+    Parameters:
+	None
 
-    conn.commit()
-    return conn
+    Returns:
+    sqlite3.conn: connection to the yearly financial database.
+    """
+	conn = sqlite3.connect('FlaskApp/financial_data.db')
+	cursor = conn.cursor()
+
+	cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
+						id INTEGER PRIMARY KEY,
+						ticker TEXT NOT NULL,
+						year INTEGER NOT NULL,
+						revenue REAL,
+						ebitda REAL,
+						fcf REAL,
+						sbc REAL,
+						net_income REAL,
+						eps REAL,
+						cash REAL,
+						debt REAL,
+						shares_outstanding REAL,
+						UNIQUE (ticker, year)
+					)''')
+
+	conn.commit()
+	return conn
 
 def insert_data_into_database(conn, ticker, data):
 	cursor = conn.cursor()
@@ -137,15 +144,32 @@ def printDB():
         if conn:
             conn.close()
 
+def extract_all_valid_tickers_from_csvs():
+	"""
+    Extract all the tickers from the file path of cleaned ticker csv files.
+
+    Parameters:
+	None
+
+    Returns:
+    list: all tickers that have financial data in the yahoo finance API.
+    """
+	tickers = []
+	files = ['StockTickers/nasdaq_tickers_cleaned.csv', 'StockTickers/nyse_tickers_cleaned.csv']
+	for file_path in files:
+		with open(file_path, newline='') as csvfile:
+			reader = csv.DictReader(csvfile)
+			for row in reader:
+				frequency = row['Market Cap']
+				if frequency != 'N/A':
+					tickers.append(row['Ticker'])
+	return tickers
+
 def main():
 	# Create database and get connection
 	conn = create_database()
 
-	# Get the tickers from the data
-	csv_file_path = 'StockTickers/nasdaq_tickers_cleaned.csv'
-	csv_file_path2 = 'StockTickers/nyse_tickers_cleaned.csv'
-	extract_tickers_from_csv(csv_file_path)
-	extract_tickers_from_csv(csv_file_path2)
+	tickers = extract_all_valid_tickers_from_csvs()
 
 	# create list of years to search for in financial statements
 	current_year = datetime.now().year
