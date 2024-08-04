@@ -7,6 +7,15 @@ import time
 import datetime
 
 def extract_dividend_data(ticker):
+    """
+    Extract the dividend data of a ticker for the last 15 years.
+
+    Parameters:
+    ticker (str): The ticker symbol of the company.
+
+    Returns:
+    list: Holding each years the last 15 years of a tickers dividend data
+    """
     # Fetch dividend data using yfinance
     ticker_obj = yf.Ticker(ticker)
     print(ticker)
@@ -27,6 +36,15 @@ def extract_dividend_data(ticker):
     return dividends
 
 def create_database():
+    """
+    Creates the database for the dividend history of each company.
+
+    Parameters:
+	None
+
+    Returns:
+    sqlite3.conn: connection to the dividend database.
+    """
     conn = sqlite3.connect('FlaskApp/dividend_data.db')
     cursor = conn.cursor()
 
@@ -43,6 +61,17 @@ def create_database():
     return conn
 
 def insert_data_into_database(conn, ticker, data):
+    """
+    Insert the yearly financial data into the database.
+
+    Parameters:
+	conn (sqlite3.conn): The connection to the dividend database.
+    ticker (str): The ticker symbol of the company.
+	data (dict): The dividend data for the last 15 years.
+
+    Returns:
+    None
+    """
     cursor = conn.cursor()
 
     # Prepare a list of tuples to be inserted
@@ -55,6 +84,15 @@ def insert_data_into_database(conn, ticker, data):
     conn.commit()
 
 def printDB():
+    """
+    Prints out the entire database for the dividends of each company.
+
+    Parameters:
+	None
+
+    Returns:
+    None
+    """
     try:
         # Connect to SQLite database
         conn = sqlite3.connect('FlaskApp/dividend_data.db')

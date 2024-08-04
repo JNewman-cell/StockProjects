@@ -8,7 +8,16 @@ import time
 from datetime import datetime
 
 def find_year_index(columns, year):
-	
+	"""
+    Finds the index of the year in the yearly earnings dataframe.
+
+    Parameters:
+    columns (list): The head columns of the earnings dataframe.
+	year (int): The year that we are trying to extract data for.
+
+    Returns:
+    idx: The index of the year in the columns, None if not found
+    """
 	for idx, col_name in enumerate(columns.astype(str)):
 		if str(year) in col_name:
 			return idx
@@ -23,7 +32,7 @@ def extract_financial_data(ticker, years):
 	years (list): The years that we are extracting data for.
 
     Returns:
-    dict: holding each years data, encoded with the year they were taken from
+    dict: Holding each years data, encoded with the year they were taken from
     """
 	data = {}
 	stock = yf.Ticker(ticker)
@@ -79,7 +88,7 @@ def create_database():
 	None
 
     Returns:
-    sqlite3.conn: connection to the yearly financial database.
+    sqlite3.conn: Connection to the yearly financial database.
     """
 	conn = sqlite3.connect('FlaskApp/financial_data.db')
 	cursor = conn.cursor()
@@ -104,6 +113,17 @@ def create_database():
 	return conn
 
 def insert_data_into_database(conn, ticker, data):
+	"""
+    Insert the yearly financial data into the database.
+
+    Parameters:
+	conn (sqlite3.conn): The connection to the yearly financial database.
+    ticker (str): The ticker symbol of the company.
+	data (dict): The yearly financial data for the given years.
+
+    Returns:
+    None
+    """
 	cursor = conn.cursor()
 
 	# Prepare a list of tuples to be inserted
@@ -120,31 +140,40 @@ def insert_data_into_database(conn, ticker, data):
 
 # prints out the entire database for debugging
 def printDB():
-    try:
-        # Connect to SQLite database
-        conn = sqlite3.connect('FlaskApp/financial_data.db')
-        c = conn.cursor()
+	"""
+    Prints out the entire database for the yearly financials of each company.
 
-        # Execute a SELECT query to fetch all rows from the table
-        c.execute('SELECT * FROM stocks')
+    Parameters:
+	None
 
-        # Fetch all rows from the result cursor
-        rows = c.fetchall()
+    Returns:
+    None
+    """
+	try:
+		# Connect to SQLite database
+		conn = sqlite3.connect('FlaskApp/financial_data.db')
+		c = conn.cursor()
 
-        if not rows:
-            print("No data found in the 'stocks' table.")
-        else:
-            # Print the fetched rows
-            for row in rows:
-                print(row)
+		# Execute a SELECT query to fetch all rows from the table
+		c.execute('SELECT * FROM stocks')
 
-    except sqlite3.Error as e:
-        print(f"Error reading data from database: {e}")
+		# Fetch all rows from the result cursor
+		rows = c.fetchall()
 
-    finally:
-        # Close the connection
-        if conn:
-            conn.close()
+		if not rows:
+			print("No data found in the 'stocks' table.")
+		else:
+			# Print the fetched rows
+			for row in rows:
+				print(row)
+
+	except sqlite3.Error as e:
+		print(f"Error reading data from database: {e}")
+
+	finally:
+		# Close the connection
+		if conn:
+			conn.close()
 
 def main():
 	# Create database and get connection

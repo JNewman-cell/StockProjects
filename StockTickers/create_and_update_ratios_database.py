@@ -12,6 +12,15 @@ def check_ratios(ticker, info, field):
     return value
 
 def extract_stock_info(ticker):
+    """
+    Extract the financial ratios data of a ticker.
+
+    Parameters:
+    ticker (str): The ticker symbol of the company.
+
+    Returns:
+    dict: The financial ratios of the ticker
+    """
     data = {}
     stock = yf.Ticker(ticker)
 
@@ -42,6 +51,15 @@ def extract_stock_info(ticker):
     return data
 
 def create_database():
+    """
+    Creates the database for the financial ratios of each company.
+
+    Parameters:
+	None
+
+    Returns:
+    sqlite3.conn: Connection to the financial ratio database.
+    """
     conn = sqlite3.connect('FlaskApp/stock_info.db')
     cursor = conn.cursor()
 
@@ -73,6 +91,17 @@ def create_database():
     return conn
 
 def insert_data_into_database(conn, ticker, data):
+    """
+    Insert the yearly financial data into the database.
+
+    Parameters:
+	conn (sqlite3.conn): The connection to the dividend database.
+    ticker (str): The ticker symbol of the company.
+	data (dict): The financial ratio data for the ticker.
+
+    Returns:
+    None
+    """
     cursor = conn.cursor()
 
     # Prepare the data for insertion or update including the company name, freeCashflow, and marketCap
@@ -110,6 +139,15 @@ def insert_data_into_database(conn, ticker, data):
     conn.commit()
 
 def printDB():
+    """
+    Prints out the entire database for the financial ratios of each company.
+
+    Parameters:
+	None
+
+    Returns:
+    None
+    """
     try:
         conn = sqlite3.connect('FlaskApp/stock_info.db')
         c = conn.cursor()
