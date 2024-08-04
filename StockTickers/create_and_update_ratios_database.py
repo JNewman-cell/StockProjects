@@ -1,6 +1,6 @@
 import sqlite3
 import yfinance as yf
-import csv
+from csv_manipulation import extract_all_valid_tickers_from_csvs
 import time
 
 def check_ratios(ticker, info, field):
@@ -127,27 +127,6 @@ def printDB():
     finally:
         if conn:
             conn.close()
-
-def extract_all_valid_tickers_from_csvs():
-	"""
-    Extract all the tickers from the file path of cleaned ticker csv files.
-
-    Parameters:
-	None
-
-    Returns:
-    list: all tickers that have financial data in the yahoo finance API.
-    """
-	tickers = []
-	files = ['StockTickers/nasdaq_tickers_cleaned.csv', 'StockTickers/nyse_tickers_cleaned.csv']
-	for file_path in files:
-		with open(file_path, newline='') as csvfile:
-			reader = csv.DictReader(csvfile)
-			for row in reader:
-				frequency = row['Market Cap']
-				if frequency != 'N/A':
-					tickers.append(row['Ticker'])
-	return tickers
 
 def main():
     conn = create_database()

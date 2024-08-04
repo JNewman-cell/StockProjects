@@ -1,6 +1,9 @@
 import csv
 import pickle
+import sys
 import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../StockTickers'))
+from csv_manipulation import extract_all_valid_tickers_and_market_caps_from_csvs
 
 class TrieNode:
 	def __init__(self):
@@ -52,22 +55,10 @@ class Trie:
 
 trie = Trie()
 
-# Read ticker symbols and frequencies from CSV file
-with open('../StockTickers/nasdaq_tickers_cleaned.csv', 'r') as csvfile:
-	reader = csv.DictReader(csvfile)
-	for row in reader:
-		ticker = row['Ticker']
-		frequency = row['Market Cap']
-		if frequency != 'N/A':
-			trie.insert_with_frequency(ticker, int(frequency))
+tickers = extract_all_valid_tickers_and_market_caps_from_csvs()
 
-with open('../StockTickers/nyse_tickers_cleaned.csv', 'r') as csvfile:
-	reader = csv.DictReader(csvfile)
-	for row in reader:
-		ticker = row['Ticker']
-		frequency = row['Market Cap']
-		if frequency != 'N/A':
-			trie.insert_with_frequency(ticker, int(frequency))
+for ticker, frequency in tickers:
+	trie.insert_with_frequency(ticker, int(frequency))
 
 # Save the Trie to a file
 with open(os.getcwd()+'/trie.pkl', 'wb') as f:
