@@ -39,7 +39,7 @@ def fetch_market_caps(tickers, nonexistent_market_caps):
 		if ticker not in nonexistent_market_caps:
 			market_cap = get_market_cap(ticker)
 			market_caps[ticker] = market_cap[1]
-			sleep(0.5)
+			sleep(0.2)
 	return market_caps
 
 def clean_tickers(input_file, output_file):

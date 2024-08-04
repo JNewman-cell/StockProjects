@@ -201,3 +201,9 @@ def update_earnings_db_and_weekly_earnings():
         json.dump(new_weekly_earnings, jsonfile)
 
     conn.close()
+
+def main():
+	printDB()
+
+if __name__ == "__main__":
+    main()
