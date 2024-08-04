@@ -1,8 +1,9 @@
 name: Test Custom Trie Autocomplete
 
 on:
-  schedule:
-    - cron: '20 7 * * *'  # Runs everyday at 12:20 AM PST
+  workflow_run:
+      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
+      types: [completed]
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
