@@ -1,9 +1,10 @@
 name: Update Stock Yearly Financials DB (SQLite)
 
 on:
-  schedule:
-    - cron: '0 8 * * *'  # Runs every Sunday at 1:00 AM PST
-  workflow_dispatch:  # Enable manual trigger
+  workflow_run:
+      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
+      types: [completed]
+  workflow_dispatch:
 
 jobs:
   update-the-stock-database-based-on-ticker-datasets:
