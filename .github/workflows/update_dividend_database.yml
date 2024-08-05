@@ -1,8 +1,9 @@
 name: Update Stock Dividends DB (SQLite)
 
 on:
-  schedule:
-    - cron: '0 8 * * *'  # Runs every Sunday at 1:00 AM PST
+  workflow_run:
+      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
+      types: [completed]
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
