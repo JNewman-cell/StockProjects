@@ -102,7 +102,7 @@ def main():
     input_file = sys.argv[1]
     output_file = 'StockTickers/' + input_file.split('.')[0] + '_cleaned.csv'
     clean_tickers(input_file, output_file)
-    if datetime.today().weekday() == 6:
+    if datetime.datetime.today().weekday() == 6:
         update_earnings_db_and_weekly_earnings()
 
 if __name__ == "__main__":
