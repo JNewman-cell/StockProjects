@@ -28,3 +28,16 @@ jobs:
         python-version: '3.x'
         cache: 'pip' # caching pip dependencies
     - run: pip install -r requirements.txt
+
+    - name: Update earnings cache
+      run: |
+        python StockTickers/update_earnings_cache.py
+
+    - name: Add and commit updated database
+      run: |
+        git config --global user.email "jpnewman167@gmail.com"
+        git config --global user.name "JNewman-cell"
+        git pull origin main
+        git add FlaskApp/earnings_data.db StockTickers/weekly_earnings.json
+        git commit -m "Add updated financial database" || echo "No changes to commit"
+        git push origin main
