@@ -1,1 +1,30 @@
+name: Update Earnings Date Cache and DB (SQLite)
 
+on:
+  workflow_run:
+      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
+      types: [completed]
+  workflow_dispatch:
+
+jobs:
+  update-the-stock-database-based-on-ticker-datasets:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
