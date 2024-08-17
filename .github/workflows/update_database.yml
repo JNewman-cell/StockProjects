@@ -2,7 +2,7 @@ name: Update Stock Yearly Financials DB (SQLite)
 
 on:
   workflow_run:
-      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
+      workflows: ['Update Earnings Date Cache and DB (SQLite)']
       types: [completed]
   workflow_dispatch:
 
