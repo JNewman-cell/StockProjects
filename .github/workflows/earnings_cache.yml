@@ -1,8 +1,8 @@
-name: Update Stock Yearly Financials DB (SQLite)
+name: Update Earnings Date Cache and DB (SQLite)
 
 on:
   workflow_run:
-      workflows: ['Update Earnings Date Cache and DB (SQLite)']
+      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
       types: [completed]
   workflow_dispatch:
 
@@ -29,15 +29,15 @@ jobs:
         cache: 'pip' # caching pip dependencies
     - run: pip install -r requirements.txt
 
-    - name: Update database information
+    - name: Update earnings cache
       run: |
-        python StockTickers/create_and_update_database.py
+        python StockTickers/update_earnings_cache.py
 
     - name: Add and commit updated database
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
         git pull origin main
-        git add FlaskApp/financial_data.db
+        git add FlaskApp/earnings_data.db StockTickers/weekly_earnings.json
         git commit -m "Add updated financial database" || echo "No changes to commit"
         git push origin main
