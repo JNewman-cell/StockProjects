@@ -179,7 +179,10 @@ def main():
 	# Create database and get connection
 	conn = create_database()
 
+	# check cached tickers
 	tickers_to_check = get_tickers_with_earnings_within_a_week()
+	# check all tickers
+	tickers_to_check = extract_all_valid_tickers_from_csvs()
 
 	# create list of years to search for in financial statements
 	current_year = datetime.now().year
