@@ -108,3 +108,7 @@ This approach leverages the power of automation, scheduled tasks, and version co
 ## Scheduled Update of Earnings Cache:
 
 [![Update Earnings Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml)
+
+## Scheduled Update of Ex Dividend Cache:
+
+[![Update Ex Dividend Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/ex_dividend_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/ex_dividend_cache.yml)
