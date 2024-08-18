@@ -1,4 +1,4 @@
-name: Update Earnings Date Cache and DB (SQLite)
+name: Update Ex Dividend Date Cache and DB (SQLite)
 
 on:
   workflow_run:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-earnings-cache:
+  update-ex-dividend-cache:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -31,13 +31,13 @@ jobs:
 
     - name: Update earnings cache
       run: |
-        python StockTickers/update_earnings_cache.py
+        python StockTickers/update_ex_dividend_cache.py
 
     - name: Add and commit updated database
       run: |
         git config --global user.email "jpnewman167@gmail.com"
         git config --global user.name "JNewman-cell"
         git pull origin main
-        git add FlaskApp/earnings_data.db StockTickers/weekly_earnings.json
+        git add FlaskApp/ex_dividend_data.db StockTickers/weekly_dividends.json
         git commit -m "Add updated financial database" || echo "No changes to commit"
         git push origin main
