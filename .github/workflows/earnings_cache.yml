@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-the-stock-database-based-on-ticker-datasets:
+  update-earnings-cache:
     runs-on: ubuntu-latest
     strategy:
       matrix:
