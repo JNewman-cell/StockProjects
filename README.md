@@ -104,3 +104,7 @@ This approach leverages the power of automation, scheduled tasks, and version co
 ## Scheduled Update of TTM Database:
 
 [![Update Stock TTM Financials and Ratios DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml)
+
+## Scheduled Update of Earnings Cache:
+
+[![Update Earnings Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml)
