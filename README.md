@@ -1,5 +1,33 @@
 # StockProjects
 
+## Scheduled Ticker Pulling, Cleaning, and Custom Trie Creation:
+
+[![Pull and Clean Tickers and Make Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml)
+
+## Scheduled Trie Testing After Creation:
+
+[![Test Custom Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/test_trie.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/test_trie.yml)
+
+## Scheduled Update of Database:
+
+[![Update Stock Yearly Financials DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_database.yml)
+
+## Scheduled Update of Dividend Database:
+
+[![Update Stock Dividends DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml)
+
+## Scheduled Update of TTM Database:
+
+[![Update Stock TTM Financials and Ratios DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml)
+
+## Scheduled Update of Earnings Cache:
+
+[![Update Earnings Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml)
+
+## Scheduled Update of Ex Dividend Cache:
+
+[![Update Ex Dividend Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/ex_dividend_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/ex_dividend_cache.yml)
+
 ### Summary of the Backend Functionality
 
 The combined functionality of the provided code pieces supports a stock research web application by integrating data extraction, storage, and efficient search capabilities. Here’s an overview of how these components work together:
@@ -84,31 +112,3 @@ Using automated workflows to manage data extraction, cleaning, storage, and test
 ### Conclusion
 
 This approach leverages the power of automation, scheduled tasks, and version control to create a robust, reliable, and user-friendly stock research web application. By ensuring that data is always current and accurate, and by automating time-consuming tasks, this method provides a solid foundation for delivering high-quality financial insights to users. The combination of efficient data processing, automated workflows, and regular testing enhances both the functionality and maintainability of the application.
-
-## Scheduled Ticker Pulling, Cleaning, and Custom Trie Creation:
-
-[![Pull and Clean Tickers and Make Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml)
-
-## Scheduled Trie Testing After Creation:
-
-[![Test Custom Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/test_trie.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/test_trie.yml)
-
-## Scheduled Update of Database:
-
-[![Update Stock Yearly Financials DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_database.yml)
-
-## Scheduled Update of Dividend Database:
-
-[![Update Stock Dividends DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_dividend_database.yml)
-
-## Scheduled Update of TTM Database:
-
-[![Update Stock TTM Financials and Ratios DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/update_ttm_database.yml)
-
-## Scheduled Update of Earnings Cache:
-
-[![Update Earnings Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/earnings_cache.yml)
-
-## Scheduled Update of Ex Dividend Cache:
-
-[![Update Ex Dividend Date Cache and DB (SQLite)](https://github.com/JNewman-cell/StockProjects/actions/workflows/ex_dividend_cache.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/ex_dividend_cache.yml)
