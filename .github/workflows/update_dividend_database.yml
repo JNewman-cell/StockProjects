@@ -2,7 +2,7 @@ name: Update Stock Dividends DB (SQLite)
 
 on:
   workflow_run:
-      workflows: ['Pull and Clean Tickers and Make Trie Autocomplete']
+      workflows: ['Update Ex Dividend Date Cache and DB (SQLite)']
       types: [completed]
   workflow_dispatch:  # Enable manual trigger
 
