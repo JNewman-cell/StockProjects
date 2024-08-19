@@ -5,7 +5,6 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import time
 from csv_manipulation import extract_all_valid_tickers_from_csvs
-from create_and_update_dividend_database import get_latest_dividend_of_ticker
 
 def get_ex_dividend_date_API(ticker):
     """
@@ -188,13 +187,14 @@ def update_ex_dividends_db_and_weekly_dividends():
 
 	today = datetime.datetime.today()
 	one_week_from_now = today + datetime.timedelta(days=7)
-	printDB()
+	# printDB()
 		
 	for ticker in tickers:
+		# print(get_latest_dividend_of_ticker(ticker))
 		# tickers' last dividend was greater than seven months ago, so don't check
 		if get_latest_dividend_of_ticker(ticker):
 			# ticker is not in the database, indicating that it should be checked
-			if ticker_in_database(ticker):
+			if not ticker_in_database(ticker):
 				# ticker is not in the weekly_dividends database meaning we have to fetch the data from the API
 				ex_dividend_date = get_ex_dividend_date_API(ticker)
 				# print(ticker)
