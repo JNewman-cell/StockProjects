@@ -49,6 +49,31 @@ def get_ex_dividend_date_DB(ticker):
 
     return result
 
+def get_latest_dividend_of_ticker(ticker):
+	"""
+	Insert the yearly financial data into the database.
+
+	Parameters:
+	conn (sqlite3.conn): The connection to the dividend database.
+	ticker (str): The ticker symbol of the company.
+	data (dict): The dividend data for the last 15 years.
+
+	Returns:
+	None
+	"""
+	conn = sqlite3.connect('FlaskApp/dividend_data.db')
+	cursor = conn.cursor()
+
+
+	cursor.execute("SELECT * FROM stocks WHERE ticker = ? ORDER BY id DESC Limit 1",(ticker,))
+	# cursor.execute("SELECT * FROM stocks ORDER BY date(date) DESC Limit 1 WHERE ticker = ?", (ticker,))
+	result = cursor.fetchall()
+	# print(result)
+
+	conn.close()
+
+	return result[0][2] if result else None
+
 def ticker_in_database(ticker):
     """
     Check if a ticker is present in the database.

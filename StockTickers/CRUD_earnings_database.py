@@ -162,7 +162,7 @@ def update_earnings_db_and_weekly_earnings():
 
     today = datetime.datetime.today()
     one_week_from_now = today + datetime.timedelta(days=7)
-    printDB()
+    # printDB()
         
     for ticker in tickers:
         # ticker is not in the database, indicating that it should be checked
