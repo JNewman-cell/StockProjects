@@ -69,8 +69,8 @@ def ticker_in_database(ticker):
 
     return result is not None
 
-def get_tickers_with_earnings_within_a_week():
-    tickers_with_earnings = []
+def get_tickers_with_dividend_within_a_week():
+    tickers_with_dividend = []
     
     with open('StockTickers/weekly_dividends.json', 'r') as jsonfile:
         tickers_with_dividends = json.load(jsonfile)

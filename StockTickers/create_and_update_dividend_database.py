@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 from collections import defaultdict
 from csv_manipulation import extract_all_valid_tickers_from_csvs
+from CRUD_ex_dividend_database import get_tickers_with_dividend_within_a_week
 import time
 import datetime
 
@@ -148,7 +149,7 @@ def main():
     # Create database and get connection
     conn = sqlite3.connect('FlaskApp/dividend_data.db')
     
-    tickers = extract_all_valid_tickers_from_csvs()
+    tickers = get_tickers_with_dividend_within_a_week()
 
     # test ticker set
     # tickers = ['AAPL', 'GOOGL']
