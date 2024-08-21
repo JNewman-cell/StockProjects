@@ -4,6 +4,7 @@ import json
 import datetime
 import time
 from csv_manipulation import extract_all_valid_tickers_from_csvs
+from tqdm import tqdm
 
 def get_earnings_date_API(ticker):
     """
@@ -164,7 +165,7 @@ def update_earnings_db_and_weekly_earnings():
     one_week_from_now = today + datetime.timedelta(days=7)
     # printDB()
         
-    for ticker in tickers:
+    for ticker in tqdm(tickers, desc="Updating earnings and weekly earnings"):
         # ticker is not in the database, indicating that it should be checked
         if not ticker_in_database(ticker):
             # ticker is not in the weekly_earnings database meaning we have to fetch the data from the API

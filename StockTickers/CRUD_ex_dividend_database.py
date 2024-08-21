@@ -5,6 +5,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import time
 from csv_manipulation import extract_all_valid_tickers_from_csvs
+from tqdm import tqdm
 
 def get_ex_dividend_date_API(ticker):
     """
@@ -18,10 +19,11 @@ def get_ex_dividend_date_API(ticker):
     """
     ticker_obj = yf.Ticker(ticker)
     earnings_info = ticker_obj.calendar
+    # print(earnings_info)
 
     if 'Ex-Dividend Date' in earnings_info:
         try:
-            ex_dividend_date = earnings_info['Ex-Dividend Date'][0]
+            ex_dividend_date = earnings_info['Ex-Dividend Date']
         except Exception as e:
             ex_dividend_date = None
         return ex_dividend_date
@@ -177,61 +179,62 @@ def printDB():
             conn.close()
 
 def update_ex_dividends_db_and_weekly_dividends():
-	conn = create_database()
-	tickers = extract_all_valid_tickers_from_csvs()
+    conn = create_database()
+    tickers = extract_all_valid_tickers_from_csvs()
 
-	# tickers = ['AAPL', 'MSFT', 'NFLX']
-	new_weekly_dividends = []
-	with open('StockTickers/weekly_dividends.json', 'r') as jsonfile:
-		weekly_dividends = json.load(jsonfile)
+    # tickers = ['AAPL', 'MSFT', 'NFLX']
+    new_weekly_dividends = []
+    with open('StockTickers/weekly_dividends.json', 'r') as jsonfile:
+        weekly_dividends = json.load(jsonfile)
 
-	today = datetime.datetime.today()
-	one_week_from_now = today + datetime.timedelta(days=7)
-	# printDB()
-		
-	for ticker in tickers:
-		# print(get_latest_dividend_of_ticker(ticker))
-		# tickers' last dividend was greater than seven months ago, so don't check
-		if get_latest_dividend_of_ticker(ticker):
-			# ticker is not in the database, indicating that it should be checked
-			if not ticker_in_database(ticker):
-				# ticker is not in the weekly_dividends database meaning we have to fetch the data from the API
-				ex_dividend_date = get_ex_dividend_date_API(ticker)
-				# print(ticker)
-				# print(ex_dividend_date)
-				# earnings date is in the yfinance API
-				if ex_dividend_date != None:
-					try:
-						# print(ex_dividend_date)
-						# convert datetime.date to datetime.dateime to compare to today's date
-						date_comp = datetime.datetime(ex_dividend_date.year, ex_dividend_date.month, ex_dividend_date.day)
-					except Exception as e:
-						continue
-					# earnings are not coming up in the next week, no need to check the earnings
-					if not today <= date_comp <= one_week_from_now:
-						insert_data_into_database(conn, ticker, ex_dividend_date)
-					else:
-						# earnings are coming up and it wasn't found in the weekly earnings list, therefore we should check for report
-						if ticker not in weekly_dividends:
-							new_weekly_dividends.append(ticker)
-				time.sleep(1)
-			elif ticker_in_database(ticker):
-				# if the ticker is in the database, do the same comparison to find the new upcoming weekly earnings
-				ex_dividend_date = datetime.datetime.strptime(get_ex_dividend_date_DB(ticker)[0], "%Y-%m-%d").date()
-				# print(ex_dividend_date)
-				date_comp = datetime.datetime(ex_dividend_date.year, ex_dividend_date.month, ex_dividend_date.day)
-				if not today <= date_comp <= one_week_from_now:
-					delete_ticker_from_database(conn, ticker)
-					new_weekly_dividends.append(ticker)
+    today = datetime.datetime.today()
+    one_week_from_now = today + datetime.timedelta(days=7)
+    # printDB()
+        
+    for ticker in tqdm(tickers, desc="Updating ex-dividends and weekly dividends"):
+        # print(get_latest_dividend_of_ticker(ticker))
+        # tickers' last dividend was greater than seven months ago, so don't check
+        date = get_latest_dividend_of_ticker(ticker)
+        if date:
+            # ticker is not in the database, indicating that it should be checked
+            if not ticker_in_database(ticker):
+                # ticker is not in the weekly_dividends database meaning we have to fetch the data from the API
+                ex_dividend_date = get_ex_dividend_date_API(ticker)
+                # print(ticker)
+                # print(ex_dividend_date)
+                # earnings date is in the yfinance API
+                if ex_dividend_date != None:
+                    try:
+                        # print(ex_dividend_date)
+                        # convert datetime.date to datetime.dateime to compare to today's date
+                        date_comp = datetime.datetime(ex_dividend_date.year, ex_dividend_date.month, ex_dividend_date.day)
+                    except Exception as e:
+                        continue
+                    # earnings are not coming up in the next week, no need to check the earnings
+                    if not today <= date_comp <= one_week_from_now:
+                        insert_data_into_database(conn, ticker, ex_dividend_date)
+                    else:
+                        # earnings are coming up and it wasn't found in the weekly earnings list, therefore we should check for report
+                        if ticker not in weekly_dividends:
+                            new_weekly_dividends.append(ticker)
+                            # print('Added ticker to weekly dividend list.')
+                time.sleep(1)
+            elif ticker_in_database(ticker):
+                # if the ticker is in the database, do the same comparison to find the new upcoming weekly earnings
+                ex_dividend_date = datetime.datetime.strptime(get_ex_dividend_date_DB(ticker)[0], "%Y-%m-%d").date()
+                # print(ex_dividend_date)
+                date_comp = datetime.datetime(ex_dividend_date.year, ex_dividend_date.month, ex_dividend_date.day)
+                if not today <= date_comp <= one_week_from_now:
+                    delete_ticker_from_database(conn, ticker)
+                    new_weekly_dividends.append(ticker)
 
-	# save the list of tickers with upcoming earnings to a json file for use in other scripts
-	with open('StockTickers/weekly_dividends.json', 'w') as jsonfile:
-		json.dump(new_weekly_dividends, jsonfile)
+    # save the list of tickers with upcoming earnings to a json file for use in other scripts
+    with open('StockTickers/weekly_dividends.json', 'w') as jsonfile:
+        json.dump(new_weekly_dividends, jsonfile)
 
-	conn.close()
+    conn.close()
 
 def main():
-	create_database()
 	printDB()
 
 if __name__ == "__main__":
