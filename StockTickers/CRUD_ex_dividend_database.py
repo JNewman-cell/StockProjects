@@ -211,7 +211,7 @@ def update_ex_dividends_db_and_weekly_dividends():
                     except Exception as e:
                         continue
                     # earnings are not coming up in the next week, no need to check the earnings
-                    if not today <= date_comp <= one_week_from_now:
+                    if today <= date_comp and not date_comp <= one_week_from_now:
                         insert_data_into_database(conn, ticker, ex_dividend_date)
                     else:
                         # earnings are coming up and it wasn't found in the weekly earnings list, therefore we should check for report
