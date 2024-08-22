@@ -2,6 +2,8 @@ import sqlite3
 import yfinance as yf
 from csv_manipulation import extract_all_valid_tickers_from_csvs
 import time
+from tqdm import tqdm
+
 
 def check_ratios(ticker, info, field):
     try:

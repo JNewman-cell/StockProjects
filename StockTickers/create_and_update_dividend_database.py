@@ -6,6 +6,7 @@ from csv_manipulation import extract_all_valid_tickers_from_csvs
 from CRUD_ex_dividend_database import get_tickers_with_dividend_within_a_week
 import time
 import datetime
+from tqdm import tqdm
 
 def extract_dividend_data(ticker):
     """
