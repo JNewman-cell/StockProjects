@@ -6,6 +6,7 @@ from csv_manipulation import extract_all_valid_tickers_from_csvs
 from CRUD_earnings_database import get_tickers_with_earnings_within_a_week
 import time
 from datetime import datetime
+from tqdm import tqdm
 
 def find_year_index(columns, year):
 	"""
@@ -40,7 +41,7 @@ def extract_financial_data(ticker, years):
 	income_stmt = stock.income_stmt
 	cashflow = stock.cashflow
 	balance_sheet = stock.balance_sheet
-	print('Extracting Data for Ticker: '+ticker)
+	# print('Extracting Data for Ticker: '+ticker)
 
 	for year in years:
 		index_of_year_income = find_year_index(income_stmt.columns, year)
@@ -49,7 +50,7 @@ def extract_financial_data(ticker, years):
 
 		# only want years where all data is found, some new data has blanks in certain sheets
 		if index_of_year_income == None or index_of_year_balance_sheet == None or index_of_year_cashflow == None:
-			print('skipped year: ' + str(year))
+			# print('skipped year: ' + str(year))
 			continue
 
 		# Filter data for the specific year
@@ -180,7 +181,7 @@ def main():
 	conn = create_database()
 
 	# check cached tickers
-	tickers_to_check = get_tickers_with_earnings_within_a_week()
+	tickers = get_tickers_with_earnings_within_a_week()
 	# # check all tickers
 	# tickers_to_check = extract_all_valid_tickers_from_csvs()
 
@@ -194,7 +195,7 @@ def main():
 	# tickers = ['EA']
 	# print(len(tickers))
 
-	for ticker in tickers_to_check:
+	for ticker in tqdm(tickers, desc="Updating financials database"):
 		data = extract_financial_data(ticker, year_range)
 		insert_data_into_database(conn, ticker, data)
 		# sleep to prevent API rate limit trigger

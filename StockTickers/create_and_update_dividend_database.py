@@ -19,7 +19,7 @@ def extract_dividend_data(ticker):
     """
     # Fetch dividend data using yfinance
     ticker_obj = yf.Ticker(ticker)
-    print(ticker)
+    # print(ticker)
 
     # Define date range for the last 10 years
     end_date = datetime.datetime.now()
@@ -130,7 +130,7 @@ def main():
     # tickers = ['AAPL', 'GOOGL']
     # print(len(tickers))
 
-    for ticker in tickers:
+    for ticker in tqdm(tickers, desc="Updating dividends database"):
         data = extract_dividend_data(ticker)
         insert_data_into_database(conn, ticker, data)
         time.sleep(1)

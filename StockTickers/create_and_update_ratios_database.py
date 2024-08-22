@@ -7,7 +7,7 @@ def check_ratios(ticker, info, field):
     try:
         value = info[field]
     except Exception as e:
-        print("An error occurred for ticker: {}, field: {}".format(ticker, field))
+        # print("An error occurred for ticker: {}, field: {}".format(ticker, field))
         value = None
     return value
 
@@ -25,7 +25,7 @@ def extract_stock_info(ticker):
     stock = yf.Ticker(ticker)
 
     ratios = stock.info
-    print(ticker)
+    # print(ticker)
     
     # Extract data including the company name
     data = {
@@ -171,7 +171,7 @@ def main():
 
     tickers = extract_all_valid_tickers_from_csvs()
 
-    for ticker in tickers:
+    for ticker in tqdm(tickers, desc="Updating financial ratio database"):
         data = extract_stock_info(ticker)
         insert_data_into_database(conn, ticker, data)
         time.sleep(1)
