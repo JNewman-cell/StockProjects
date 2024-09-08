@@ -26,10 +26,13 @@
 		.big-text {
 			font-size: 1.2em;
 		}
+		.custom-width {
+			width: 70%;
+		}
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid custom-width">
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="form-group">
@@ -59,19 +62,19 @@
 			</div>
 		</div>
         <div class="row mt-3">
-			<div class="col-md-4">
-				<canvas id="RevenueGraph" width="100" height="100"></canvas>
+			<div class="col">
+				<canvas id="RevenueGraph" width="200" height="200"></canvas>
 				<div id="RevenueChange1yr" class="change"></div>
 				<div id="RevenueChange2yr" class="change"></div>
 				<div id="RevenueChangemax" class="change"></div>
 			</div>
-			<div class="col-md-4">
+			<div class="col">
 				<canvas id="EBITDAGraph" width="100" height="100"></canvas>
 				<div id="EBITDAChange1yr" class="change"></div>
 				<div id="EBITDAChange2yr" class="change"></div>
 				<div id="EBITDAChangemax" class="change"></div>
 			</div>
-			<div class="col-md-4">
+			<div class="col">
 				<canvas id="Net IncomeGraph" width="100" height="100"></canvas>
 				<div id="Net IncomeChange1yr" class="change"></div>
 				<div id="Net IncomeChange2yr" class="change"></div>
