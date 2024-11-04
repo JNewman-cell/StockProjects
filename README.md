@@ -4,7 +4,7 @@
 
 [![Pull and Clean Tickers and Make Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/tickers.yml)
 
-## Scheduled Trie Testing After Creation:
+## Trie Unit Testing After Indexing:
 
 [![Test Custom Trie Autocomplete](https://github.com/JNewman-cell/StockProjects/actions/workflows/test_trie.yml/badge.svg)](https://github.com/JNewman-cell/StockProjects/actions/workflows/test_trie.yml)
 
