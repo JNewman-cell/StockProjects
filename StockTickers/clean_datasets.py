@@ -68,7 +68,7 @@ def clean_tickers(input_file, output_file):
             next(reader)
             nonexistent_market_caps = [row[0] for row in reader if row[1] == 'N/A']
     today = datetime.datetime.today().weekday()
-    if today == 6:
+    if today == 6 or len(nonexistent_market_caps)>=500:
         nonexistent_market_caps = []
 
     market_caps = fetch_market_caps(tickers, nonexistent_market_caps)
