@@ -90,65 +90,14 @@ def fetch_market_caps_optimized(tickers, nonexistent_market_caps, batch_size=20,
     
     return market_caps
 
-def fetch_using_parallel_batches(tickers, nonexistent_market_caps, num_workers=3, batch_size=20, batch_delay=1.0):
-    """
-    Fetch market caps using parallel processing of batches.
-    
-    Parameters:
-    tickers (list): The ticker symbols to process.
-    nonexistent_market_caps (list): Tickers known to not have market cap data.
-    num_workers (int): Number of parallel workers.
-    batch_size (int): Number of tickers in each batch.
-    batch_delay (float): Delay between batch submissions.
-    
-    Returns:
-    dict: Dictionary mapping tickers to their market caps.
-    """
-    filtered_tickers = [t for t in tickers if t not in nonexistent_market_caps]
-    
-    # Divide tickers into worker groups
-    worker_groups = [[] for _ in range(num_workers)]
-    for i, ticker in enumerate(filtered_tickers):
-        worker_groups[i % num_workers].append(ticker)
-    
-    results = {}
-    batch_sizes = []
-    
-    def process_worker_group(group_tickers):
-        group_results = {}
-        # Process this worker's tickers in batches
-        for i in range(0, len(group_tickers), batch_size):
-            batch = group_tickers[i:i+batch_size]
-            batch_sizes.append(len(batch))
-            batch_results = get_market_cap_batch(batch)
-            group_results.update(batch_results)
-            # Only delay if there are more batches
-            if i + batch_size < len(group_tickers):
-                time.sleep(batch_delay)
-        return group_results
-    
-    # Process each worker group in parallel
-    with ThreadPoolExecutor(max_workers=num_workers) as executor:
-        future_to_group = {executor.submit(process_worker_group, group): i 
-                          for i, group in enumerate(worker_groups) if group}
-        
-        for future in future_to_group:
-            worker_results = future.result()
-            results.update(worker_results)
-    
-    avg_batch_size = sum(batch_sizes) / len(batch_sizes) if batch_sizes else 0
-    print(f"Processed {len(filtered_tickers)} tickers in {len(batch_sizes)} batches (avg size: {avg_batch_size:.1f})")
-    
-    return results
-
-def clean_tickers(input_file, output_file, method='parallel', batch_size=20, num_workers=3):
+def clean_tickers(input_file, output_file, method='batch', batch_size=20, num_workers=1):
     """
     Create a cleaned csv file of all the tickers with their market caps.
     
     Parameters:
     input_file (str): The name of the input txt file.
     output_file (str): The name of the output csv file.
-    method (str): The method to use - 'batch', 'parallel', or 'sequential'.
+    method (str): The method to use - 'batch' or 'sequential'.
     """
     start_time = time.time()
     
@@ -178,9 +127,6 @@ def clean_tickers(input_file, output_file, method='parallel', batch_size=20, num
     # Choose fetching method based on parameter
     if method == 'batch':
         market_caps = fetch_market_caps_optimized(list(tickers), nonexistent_market_caps, batch_size=batch_size)
-    elif method == 'parallel':
-        market_caps = fetch_using_parallel_batches(list(tickers), nonexistent_market_caps, 
-                                                 num_workers=num_workers, batch_size=batch_size)
     else:  # sequential
         # Original method for reference
         market_caps = {}
