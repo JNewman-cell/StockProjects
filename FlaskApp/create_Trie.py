@@ -58,7 +58,7 @@ trie = Trie()
 tickers = extract_all_valid_tickers_and_market_caps_from_csvs()
 
 for ticker, frequency in tickers:
-	trie.insert_with_frequency(ticker, int(frequency))
+	trie.insert_with_frequency(ticker, int(float(frequency)))
 
 # Save the Trie to a file
 with open(os.getcwd()+'/trie.pkl', 'wb') as f:
