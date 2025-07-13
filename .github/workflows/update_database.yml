@@ -9,35 +9,55 @@ on:
 jobs:
   update-the-stock-database-based-on-ticker-datasets:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1  # Shallow clone for faster checkout
 
-    - name: Install Python
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-        cache: 'pip' # caching pip dependencies
-    - run: pip install -r requirements.txt
+        python-version: '3.12'
+        cache: 'pip'
+        
+    - name: Cache virtual environment and database
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          .venv
+          FlaskApp/financial_data.db
+        key: venv-${{ runner.os }}-py312-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          venv-${{ runner.os }}-py312-
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate || source .venv/Scripts/activate
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
 
     - name: Update database information
       run: |
+        source .venv/bin/activate || source .venv/Scripts/activate
         python StockTickers/create_and_update_database.py
 
     - name: Add and commit updated database
       run: |
-        git config --global user.email "jpnewman167@gmail.com"
-        git config --global user.name "JNewman-cell"
-        git pull origin main
-        git add FlaskApp/financial_data.db
-        git commit -m "Add updated financial database" || echo "No changes to commit"
-        git push origin main
+        if [[ -n $(git status -s FlaskApp/financial_data.db) ]]; then
+          git config --global user.email "jpnewman167@gmail.com"
+          git config --global user.name "JNewman-cell"
+          git pull --rebase --autostash origin main
+          git add FlaskApp/financial_data.db
+          git commit -m "Update financial database [skip ci]"
+          git push origin main
+        else
+          echo "No changes to financial database"
+        fi

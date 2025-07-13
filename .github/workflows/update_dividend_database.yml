@@ -2,42 +2,62 @@ name: Update Stock Dividends DB (SQLite)
 
 on:
   workflow_run:
-      workflows: ['Update Ex Dividend Date Cache and DB (SQLite)']
-      types: [completed]
+    workflows: ['Update Ex Dividend Date Cache and DB (SQLite)']
+    types: [completed]
   workflow_dispatch:  # Enable manual trigger
 
 jobs:
   update-the-stock-dividend-database-based-on-ticker-datasets:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1  # Shallow clone for faster checkout
 
-    - name: Install Python
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-        cache: 'pip' # caching pip dependencies
-    - run: pip install -r requirements.txt
+        python-version: '3.12'
+        cache: 'pip'
+        
+    - name: Cache virtual environment and database
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          .venv
+          FlaskApp/dividend_data.db
+        key: venv-${{ runner.os }}-py312-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          venv-${{ runner.os }}-py312-
 
-    - name: Update dividend database information
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
+        python -m venv .venv
+        source .venv/bin/activate || source .venv/Scripts/activate
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
+
+    - name: Update dividend database
+      run: |
+        source .venv/bin/activate || source .venv/Scripts/activate
         python StockTickers/create_and_update_dividend_database.py
 
-    - name: Add and commit updated dividend database
+    - name: Commit and push changes
       run: |
-        git config --global user.email "jpnewman167@gmail.com"
-        git config --global user.name "JNewman-cell"
-        git pull origin main
-        git add FlaskApp/dividend_data.db
-        git commit -m "Add updated dividend database" || echo "No changes to commit"
-        git push origin main
+        if [[ -n $(git status -s FlaskApp/dividend_data.db) ]]; then
+          git config --global user.email "jpnewman167@gmail.com"
+          git config --global user.name "JNewman-cell"
+          git pull --rebase --autostash origin main
+          git add FlaskApp/dividend_data.db
+          git commit -m "Update dividend database [skip ci]"
+          git push origin main
+        else
+          echo "No changes to dividend database"
+        fi

@@ -6,15 +6,12 @@ from CRUD_ex_dividend_database import get_ex_dividend_date_API, get_latest_divid
 
 from csv_manipulation import extract_all_valid_tickers_from_csvs
 
-from clean_datasets import get_market_cap
-
-print(get_market_cap('AAPL'))
-
 today = datetime.datetime.today()
 one_week_from_now = today + datetime.timedelta(days=7)
 seven_months_back = today + relativedelta(months=-7)
 
 ticker_obj = yf.Ticker('AMZN')
+print(ticker_obj.info)
 earnings_info = ticker_obj.calendar
 # print(earnings_info)
 

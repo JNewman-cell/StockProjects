@@ -8,18 +8,34 @@ on:
 jobs:
   update-tickers-and-clean-datasets-and-make-trie-pickle:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1  # Shallow clone for faster checkout
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+        
+    - name: Cache virtual environment and files
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          .venv
+          StockTickers/nyse_tickers_cleaned.csv
+          StockTickers/nasdaq_tickers_cleaned.csv
+          FlaskApp/trie.pkl
+        key: venv-${{ runner.os }}-py312-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          venv-${{ runner.os }}-py312-
 
     - name: Pull NYSE tickers
       run: |
@@ -29,29 +45,36 @@ jobs:
       run: |
         wget https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_tickers.txt -O nasdaq_tickers.txt
 
-    - name: Install Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        cache: 'pip' # caching pip dependencies
-    - run: pip install -r requirements.txt
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate || source .venv/Scripts/activate
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
 
     - name: Clean tickers and retrieve market caps
       run: |
+        source .venv/bin/activate || source .venv/Scripts/activate
         python StockTickers/clean_datasets.py nyse_tickers.txt
         python StockTickers/clean_datasets.py nasdaq_tickers.txt
 
     - name: Create Trie for autocomplete of tickers
       run: |
+        source .venv/bin/activate || source .venv/Scripts/activate
         cd FlaskApp
         python create_Trie.py
         cd ..
 
     - name: Add and commit cleaned dataset CSVs and Trie
       run: |
-        git config --global user.email "jpnewman167@gmail.com"
-        git config --global user.name "JNewman-cell"
-        git pull origin main
-        git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv FlaskApp/trie.pkl
-        git commit -m "Add cleaned dataset CSVs and Trie pickle"
-        git push origin main
+        if [[ -n $(git status -s StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv FlaskApp/trie.pkl) ]]; then
+          git config --global user.email "jpnewman167@gmail.com"
+          git config --global user.name "JNewman-cell"
+          git pull --rebase --autostash origin main
+          git add StockTickers/nyse_tickers_cleaned.csv StockTickers/nasdaq_tickers_cleaned.csv FlaskApp/trie.pkl
+          git commit -m "Update tickers and trie [skip ci]"
+          git push origin main
+        else
+          echo "No changes to tickers or trie"
+        fi

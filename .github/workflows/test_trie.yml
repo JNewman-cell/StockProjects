@@ -9,27 +9,43 @@ on:
 jobs:
   verify-validity-of-custom-trie:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1  # Shallow clone for faster checkout
 
-    - name: Install Python
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-        cache: 'pip' # caching pip dependencies
-    - run: pip install -r requirements.txt
+        python-version: '3.12'
+        cache: 'pip'
+        
+    - name: Cache virtual environment
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          .venv
+          FlaskApp/trie.pkl
+        key: venv-${{ runner.os }}-py312-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          venv-${{ runner.os }}-py312-
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate || source .venv/Scripts/activate
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
 
     - name: Test Custom Trie Autocomplete
       run: |
+        source .venv/bin/activate || source .venv/Scripts/activate
         cd FlaskApp
         python test_Trie.py
