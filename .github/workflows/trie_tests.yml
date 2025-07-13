@@ -1,0 +1,63 @@
+name: Trie Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'FlaskApp/create_Trie.py'
+      - 'FlaskApp/test_Trie.py'
+      - 'StockTickers/*.csv'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'FlaskApp/create_Trie.py'
+      - 'FlaskApp/test_Trie.py'
+      - 'StockTickers/*.csv'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-xdist
+
+    - name: Run Trie tests
+      run: |
+        cd FlaskApp
+        python -m pytest test_Trie.py -v --cov=create_Trie --cov-report=xml -n auto
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        file: FlaskApp/coverage.xml
+        flags: trie-tests
+        name: trie-coverage
+        fail_ci_if_error: false
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Store test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: trie-test-results-${{ matrix.python-version }}
+        path: |
+          FlaskApp/.pytest_cache
+          FlaskApp/coverage.xml
+        retention-days: 14
+        if-no-files-found: error

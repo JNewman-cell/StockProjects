@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+
+# Flask
+instance/
+.webassets-cache
+flask_app.log
+
+# React/Node.js
+FlaskApp/frontend/node_modules/
+FlaskApp/frontend/.pnp
+FlaskApp/frontend/.pnp.js
+FlaskApp/frontend/coverage/
+FlaskApp/frontend/build/
+FlaskApp/frontend/.DS_Store
+FlaskApp/frontend/.env.local
+FlaskApp/frontend/.env.development.local
+FlaskApp/frontend/.env.test.local
+FlaskApp/frontend/.env.production.local
+FlaskApp/frontend/npm-debug.log*
+FlaskApp/frontend/yarn-debug.log*
+FlaskApp/frontend/yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Database
+*.db
+*.sqlite3
+
+# Pickle files
+*.pkl
