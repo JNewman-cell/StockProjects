@@ -1,0 +1,30 @@
+2025-07-12 17:45:33,983 - ERROR - Failed to get ticker 'CPNG,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:33,983 - ERROR - Error fetching market cap for CPNG,N/A: None
+2025-07-12 17:45:33,999 - ERROR - Failed to get ticker 'FET,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:33,999 - ERROR - Error fetching market cap for FET,N/A: None
+2025-07-12 17:45:34,021 - ERROR - Failed to get ticker 'FTV,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:34,021 - ERROR - Error fetching market cap for FTV,N/A: None
+2025-07-12 17:45:37,514 - ERROR - Failed to get ticker 'CVNA,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:37,514 - ERROR - Error fetching market cap for CVNA,N/A: None
+2025-07-12 17:45:37,514 - ERROR - Failed to get ticker 'GMS,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:37,514 - ERROR - Error fetching market cap for GMS,N/A: None
+2025-07-12 17:45:38,812 - ERROR - Failed to get ticker 'DNOW,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:38,812 - ERROR - Error fetching market cap for DNOW,N/A: None
+2025-07-12 17:45:41,433 - ERROR - Failed to get ticker 'TEI,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:41,433 - ERROR - Error fetching market cap for TEI,N/A: None
+2025-07-12 17:45:42,481 - ERROR - Failed to get ticker 'SES,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:42,481 - ERROR - Error fetching market cap for SES,N/A: None
+2025-07-12 17:45:42,481 - ERROR - Failed to get ticker 'NAT,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:42,481 - ERROR - Error fetching market cap for NAT,N/A: None
+2025-07-12 17:45:45,752 - ERROR - Failed to get ticker 'WF,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:45,752 - ERROR - Error fetching market cap for WF,N/A: None
+2025-07-12 17:45:46,753 - ERROR - Failed to get ticker 'AIV,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:46,753 - ERROR - Error fetching market cap for AIV,N/A: None
+2025-07-12 17:45:46,768 - ERROR - Failed to get ticker 'ZEPP,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:46,768 - ERROR - Error fetching market cap for ZEPP,N/A: None
+2025-07-12 17:45:50,426 - ERROR - Failed to get ticker 'WGO,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:50,426 - ERROR - Failed to get ticker 'GWH,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:50,442 - ERROR - Error fetching market cap for WGO,N/A: None
+2025-07-12 17:45:50,442 - ERROR - Error fetching market cap for GWH,N/A: None
+2025-07-12 17:45:51,468 - ERROR - Failed to get ticker 'F,N/A' reason: Expecting value: line 1 column 1 (char 0)
+2025-07-12 17:45:51,469 - ERROR - Error fetching market cap for F,N/A: None
