@@ -1,12 +1,12 @@
 import sqlite3
-import yfinance as yf
-import pandas as pd
+import datetime
+import time
 from collections import defaultdict
 from csv_manipulation import extract_all_valid_tickers_from_csvs
 from CRUD_earnings_database import get_tickers_with_earnings_within_a_week
-import time
 from datetime import datetime
 from tqdm import tqdm
+from yahooquery import Ticker
 
 def find_year_index(columns, year):
 	"""
@@ -36,50 +36,55 @@ def extract_financial_data(ticker, years):
     dict: Holding each years data, encoded with the year they were taken from
     """
 	data = {}
-	stock = yf.Ticker(ticker)
-
-	income_stmt = stock.income_stmt
-	cashflow = stock.cashflow
-	balance_sheet = stock.balance_sheet
-	# print('Extracting Data for Ticker: '+ticker)
-
-	for year in years:
-		index_of_year_income = find_year_index(income_stmt.columns, year)
-		index_of_year_cashflow = find_year_index(cashflow.columns, year)
-		index_of_year_balance_sheet = find_year_index(balance_sheet.columns, year)
-
-		# only want years where all data is found, some new data has blanks in certain sheets
-		if index_of_year_income == None or index_of_year_balance_sheet == None or index_of_year_cashflow == None:
-			# print('skipped year: ' + str(year))
-			continue
-
-		# Filter data for the specific year
-		income_stmt_year = income_stmt.iloc[:,index_of_year_income:index_of_year_income+1]
-		cashflow_year = cashflow.iloc[:,index_of_year_cashflow:index_of_year_cashflow+1]
-		balance_sheet_year = balance_sheet.iloc[:,index_of_year_balance_sheet:index_of_year_balance_sheet+1]
-		
-		# Extract data
-		financials = {
-			'Revenue': check_statement(ticker, income_stmt_year, 'Total Revenue'),
-			'EBITDA': check_statement(ticker, income_stmt_year, 'EBITDA'),
-			'FCF': check_statement(ticker, cashflow_year, 'Free Cash Flow'),
-			'SBC': check_statement(ticker, cashflow_year, 'Stock Based Compensation'),
-			'NetIncome': check_statement(ticker, income_stmt_year, 'Net Income'),
-			'EPS': check_statement(ticker, income_stmt_year, 'Diluted EPS'),
-			'Cash': check_statement(ticker, balance_sheet_year, 'Cash And Cash Equivalents'),
-			'Debt': check_statement(ticker, balance_sheet_year, 'Total Debt'),
-			'SharesOutstanding': check_statement(ticker, balance_sheet_year, 'Ordinary Shares Number')
-		}
-		
-		data[year] = financials
-	return data
-
-def check_statement(ticker, statement, field):
 	try:
-		value = statement.loc[field].values[0]
+		stock = Ticker(ticker, timeout=30)
+		
+		# Get all required data at once
+		income_stmt = stock.income_statement(frequency='a')
+		cashflow = stock.cash_flow(frequency='a')
+		balance = stock.balance_sheet(frequency='a')
+		
+		# Process each year's data
+		for year in years:
+			year_data = {}
+			try:
+				# Filter for the specific year
+				year_income = income_stmt[income_stmt['asOfDate'].dt.year == year] if isinstance(income_stmt, pd.DataFrame) else None
+				year_cashflow = cashflow[cashflow['asOfDate'].dt.year == year] if isinstance(cashflow, pd.DataFrame) else None
+				year_balance = balance[balance['asOfDate'].dt.year == year] if isinstance(balance, pd.DataFrame) else None
+				
+				if year_income is not None and not year_income.empty:
+					year_data.update({
+						'Revenue': year_income['TotalRevenue'].iloc[0] if 'TotalRevenue' in year_income else None,
+						'EBITDA': year_income['EBITDA'].iloc[0] if 'EBITDA' in year_income else None,
+						'NetIncome': year_income['NetIncome'].iloc[0] if 'NetIncome' in year_income else None,
+						'EPS': year_income['DilutedEPS'].iloc[0] if 'DilutedEPS' in year_income else None
+					})
+				
+				if year_cashflow is not None and not year_cashflow.empty:
+					year_data.update({
+						'FCF': year_cashflow['FreeCashFlow'].iloc[0] if 'FreeCashFlow' in year_cashflow else None,
+						'SBC': year_cashflow['StockBasedCompensation'].iloc[0] if 'StockBasedCompensation' in year_cashflow else None
+					})
+				
+				if year_balance is not None and not year_balance.empty:
+					year_data.update({
+						'Cash': year_balance['CashAndCashEquivalents'].iloc[0] if 'CashAndCashEquivalents' in year_balance else None,
+						'Debt': year_balance['TotalDebt'].iloc[0] if 'TotalDebt' in year_balance else None,
+						'SharesOutstanding': year_balance['ShareIssued'].iloc[0] if 'ShareIssued' in year_balance else None
+					})
+				
+				if year_data:  # Only add if we got some data
+					data[year] = year_data
+					
+			except Exception as e:
+				print(f"Error processing year {year} for {ticker}: {e}")
+				continue
+				
 	except Exception as e:
-		value = 0
-	return value
+		print(f"Error fetching data for {ticker}: {e}")
+		
+	return data
 
 def create_database():
 	"""

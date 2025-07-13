@@ -1,33 +1,34 @@
-import yfinance as yf
 import sqlite3
-import json
 import datetime
-from dateutil.relativedelta import relativedelta
+import json
 import time
+from dateutil.relativedelta import relativedelta
 from csv_manipulation import extract_all_valid_tickers_from_csvs
 from tqdm import tqdm
+from yahooquery import Ticker
 
 def get_ex_dividend_date_API(ticker):
     """
-    Get the earnings date of a company using its ticker symbol from yfinance.
+    Get the ex-dividend date of a company using its ticker symbol from yahooquery.
 
     Parameters:
     ticker (str): The ticker symbol of the company.
 
     Returns:
-    str: The earnings date of the company.
+    str: The ex-dividend date of the company.
     """
-    ticker_obj = yf.Ticker(ticker)
-    earnings_info = ticker_obj.calendar
-    # print(earnings_info)
-
-    if 'Ex-Dividend Date' in earnings_info:
-        try:
-            ex_dividend_date = earnings_info['Ex-Dividend Date']
-        except Exception as e:
-            ex_dividend_date = None
-        return ex_dividend_date
-    else:
+    try:
+        ticker_obj = Ticker(ticker, timeout=30)
+        calendar_info = ticker_obj.calendar_events
+        
+        if isinstance(calendar_info, dict) and ticker in calendar_info:
+            ex_div_date = calendar_info[ticker].get('exDividendDate', None)
+            if ex_div_date:
+                return ex_div_date.strftime('%Y-%m-%d')
+        return None
+        
+    except Exception as e:
+        print(f"Error fetching ex-dividend date for {ticker}: {e}")
         return None
 
 def get_ex_dividend_date_DB(ticker):
@@ -210,7 +211,7 @@ def update_ex_dividends_db_and_weekly_dividends():
                         date_comp = datetime.datetime(ex_dividend_date.year, ex_dividend_date.month, ex_dividend_date.day)
                     except Exception as e:
                         continue
-                    # earnings are not coming up in the next week, no need to check the earnings
+                    # earnings are not coming up in the next week, no need to check
                     if today <= date_comp and not date_comp <= one_week_from_now:
                         insert_data_into_database(conn, ticker, ex_dividend_date)
                     else:

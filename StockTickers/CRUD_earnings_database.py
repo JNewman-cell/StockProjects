@@ -1,14 +1,14 @@
-import yfinance as yf
 import sqlite3
-import json
 import datetime
+import json
 import time
 from csv_manipulation import extract_all_valid_tickers_from_csvs
 from tqdm import tqdm
+from yahooquery import Ticker
 
 def get_earnings_date_API(ticker):
     """
-    Get the earnings date of a company using its ticker symbol from yfinance.
+    Get the earnings date of a company using its ticker symbol from yahooquery.
 
     Parameters:
     ticker (str): The ticker symbol of the company.
@@ -16,17 +16,19 @@ def get_earnings_date_API(ticker):
     Returns:
     str: The earnings date of the company.
     """
-    ticker_obj = yf.Ticker(ticker)
-    earnings_info = ticker_obj.calendar
-    # print(earnings_info)
-
-    if 'Earnings Date' in earnings_info:
-        try:
-            earnings_date = earnings_info['Earnings Date'][0]
-        except Exception as e:
-            earnings_date = None
-        return earnings_date
-    else:
+    try:
+        ticker_obj = Ticker(ticker, timeout=30)
+        calendar_info = ticker_obj.calendar_events
+        
+        if isinstance(calendar_info, dict) and ticker in calendar_info:
+            earnings_dates = calendar_info[ticker].get('earnings', {}).get('earningsDate', [])
+            if earnings_dates:
+                # Return the first upcoming earnings date
+                return earnings_dates[0].strftime('%Y-%m-%d')
+        return None
+        
+    except Exception as e:
+        print(f"Error fetching earnings date for {ticker}: {e}")
         return None
 
 def get_earnings_date_DB(ticker):

@@ -36,12 +36,10 @@ def fetch_market_caps(tickers, nonexistent_market_caps):
         return {ticker: 'N/A' for ticker in nonexistent_market_caps}
 
     logging.info(f"Fetching market caps for {len(tickers_to_fetch)} tickers...")
-    
-    # Create batches of 100 tickers (yahooquery handles batching internally)
     market_caps = {}
     
     try:
-        # Initialize Ticker with all symbols at once
+        # Initialize Ticker with all symbols at once for batch processing
         ticker_data = Ticker(tickers_to_fetch, timeout=30)
         
         # Get all market caps in one batch request

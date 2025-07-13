@@ -1,12 +1,12 @@
 import sqlite3
-import yfinance as yf
-import pandas as pd
+import datetime
+import time
 from collections import defaultdict
 from csv_manipulation import extract_all_valid_tickers_from_csvs
 from CRUD_ex_dividend_database import get_tickers_with_dividend_within_a_week
-import time
-import datetime
 from tqdm import tqdm
+from yahooquery import Ticker
+import pandas as pd
 
 def extract_dividend_data(ticker):
     """
@@ -18,24 +18,31 @@ def extract_dividend_data(ticker):
     Returns:
     list: Holding each years the last 15 years of a tickers dividend data
     """
-    # Fetch dividend data using yfinance
-    ticker_obj = yf.Ticker(ticker)
-    # print(ticker)
-
-    # Define date range for the last 10 years
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days=365 * 15)
-    start_date = start_date.replace(tzinfo=datetime.timezone.utc)  # Make start_date timezone-aware
-
-    # Fetch and filter dividend data
-    history = ticker_obj.history(start=start_date, end=end_date)
-    if 'Dividends' in history.columns:
-        div_data = history.Dividends
-        dividends = [{'date': date.strftime('%Y-%m'), 'amount': float(amount)} for date, amount in div_data.items() if amount > 0]
-    else:
-        dividends = []
-
-    return dividends
+    try:
+        # Initialize Ticker object with extended timeout
+        ticker_obj = Ticker(ticker, timeout=30)
+        
+        # Define date range for the last 15 years
+        end_date = datetime.datetime.now()
+        start_date = end_date - datetime.timedelta(days=365 * 15)
+        
+        # Fetch dividend data using yahooquery
+        div_history = ticker_obj.dividend_history(start=start_date, end=end_date)
+        
+        if isinstance(div_history, pd.DataFrame) and not div_history.empty:
+            dividends = []
+            for _, row in div_history.iterrows():
+                if row['dividend'] > 0:
+                    dividends.append({
+                        'date': row['date'].strftime('%Y-%m'),
+                        'amount': float(row['dividend'])
+                    })
+            return dividends
+        return []
+        
+    except Exception as e:
+        print(f"Error fetching dividend data for {ticker}: {e}")
+        return []
 
 def create_database():
     """

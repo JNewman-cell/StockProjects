@@ -3,7 +3,6 @@ pandas==2.2.2
 python_dateutil==2.9.0.post0
 pytz==2024.1
 tqdm==4.66.5
-yahoo_fin==0.8.9.1
 yahooquery>=2.3.7
 tenacity==8.2.3  # For retry logic
 requests==2.31.0  # For HTTP requests
