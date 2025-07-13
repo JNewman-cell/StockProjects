@@ -5,41 +5,106 @@ import time
 import os
 import concurrent.futures
 import yfinance as yf
+from random import uniform
+from time import sleep
+from tqdm import tqdm
+import logging
+from requests import Session
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def get_market_cap(ticker):
-	"""
-    Get the market cap of a company using its ticker symbol.
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('stock_data_fetch.log'),
+        logging.StreamHandler()
+    ]
+)
+
+def create_yf_session():
+    """Create a session for yfinance to reuse."""
+    session = Session()
+    session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    return session
+
+def get_market_cap_with_retry(ticker, session, max_retries=3, base_delay=2):
+    """
+    Get the market cap of a company using its ticker symbol with retry logic.
 
     Parameters:
     ticker (str): The ticker symbol of the company.
+    session: The requests session to use
+    max_retries (int): Maximum number of retry attempts
+    base_delay (int): Base delay between retries in seconds
 
     Returns:
-   	tuple: The ticker and its market cap, N/A if market cap isnt found, meaning financial data is not in yahoo finance.
+    tuple: The ticker and its market cap, N/A if market cap isn't found
     """
-	try:
-		info = yf.Ticker(ticker).fast_info
-		return (ticker, info.get('marketCap', 'N/A'))
-	except Exception as e:
-		print(f"Error fetching market cap for {ticker}: {e}")
-		return (ticker, 'N/A')
+    for attempt in range(max_retries):
+        try:
+            info = yf.Ticker(ticker, session=session).fast_info
+            return (ticker, info.get('marketCap', 'N/A'))
+        except Exception as e:
+            if "Too Many Requests" in str(e):
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2 ** attempt) + uniform(0, 1)
+                    logging.info(f"Rate limited for {ticker}. Retrying in {delay:.2f} seconds...")
+                    sleep(delay)
+                    continue
+            logging.error(f"Error fetching market cap for {ticker}: {e}")
+            return (ticker, 'N/A')
+    return (ticker, 'N/A')
+
+def process_ticker_batch(tickers, session):
+    """Process a batch of tickers using the same session."""
+    results = {}
+    for ticker in tickers:
+        market_cap = get_market_cap_with_retry(ticker, session)
+        results[ticker] = market_cap[1]
+        sleep(uniform(1.0, 2.0))
+    return results
 
 def fetch_market_caps(tickers, nonexistent_market_caps):
-	"""
-	Fetch all the market caps for the tickers that were pulled from the github repo.
+    """
+    Fetch all the market caps for the tickers that were pulled from the github repo.
 
-	Parameters:
-	tickers (list): The ticker symbols of the companies that were pulled.
+    Parameters:
+    tickers (list): The ticker symbols of the companies that were pulled.
 
-	Returns:
-	dict: The most recent quarterly earnings report of the company.
-	"""
-	market_caps = {}
-	for ticker in tickers:
-		if ticker not in nonexistent_market_caps:
-			market_cap = get_market_cap(ticker)
-			market_caps[ticker] = market_cap[1]
-			time.sleep(0.5)
-	return market_caps
+    Returns:
+    dict: Dictionary mapping tickers to their market caps
+    """
+    # Filter out nonexistent market caps
+    tickers_to_fetch = [t for t in tickers if t not in nonexistent_market_caps]
+    
+    # Create batches of tickers (process 10 tickers per thread)
+    batch_size = 10
+    ticker_batches = [tickers_to_fetch[i:i + batch_size] 
+                     for i in range(0, len(tickers_to_fetch), batch_size)]
+    
+    market_caps = {}
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        # Create a session for each worker
+        sessions = [create_yf_session() for _ in range(len(ticker_batches))]
+        
+        # Create futures for each batch
+        future_to_batch = {
+            executor.submit(process_ticker_batch, batch, session): batch 
+            for batch, session in zip(ticker_batches, sessions)
+        }
+        
+        # Process results with progress bar
+        with tqdm(total=len(tickers_to_fetch), desc="Fetching market caps") as pbar:
+            for future in as_completed(future_to_batch):
+                try:
+                    batch_results = future.result()
+                    market_caps.update(batch_results)
+                    pbar.update(len(batch_results))
+                except Exception as e:
+                    logging.error(f"Batch processing failed: {e}")
+                    
+    return market_caps
 
 def clean_tickers(input_file, output_file):
     """
