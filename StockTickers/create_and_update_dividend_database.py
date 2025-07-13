@@ -1,151 +1,193 @@
 import sqlite3
 import datetime
 import time
+from pathlib import Path
+import logging
+from typing import List, Dict, Optional, Union
+from dataclasses import dataclass
 from collections import defaultdict
-from csv_manipulation import extract_all_valid_tickers_from_csvs
-from CRUD_ex_dividend_database import get_tickers_with_dividend_within_a_week
-from tqdm import tqdm
-from yahooquery import Ticker
 import pandas as pd
+from yahooquery import Ticker
+from tqdm import tqdm
 
-def extract_dividend_data(ticker):
-    """
-    Extract the dividend data of a ticker for the last 15 years.
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('dividend_data.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-    Parameters:
-    ticker (str): The ticker symbol of the company.
+# Constants
+DB_PATH = Path('FlaskApp/dividend_data.db')
+YEARS_OF_HISTORY = 15
+BATCH_SIZE = 50
+MAX_RETRIES = 3
+RETRY_DELAY = 2
 
-    Returns:
-    list: Holding each years the last 15 years of a tickers dividend data
-    """
-    try:
-        # Initialize Ticker object with extended timeout
-        ticker_obj = Ticker(ticker, timeout=30)
-        
-        # Define date range for the last 15 years
-        end_date = datetime.datetime.now()
-        start_date = end_date - datetime.timedelta(days=365 * 15)
-        
-        # Fetch dividend data using yahooquery
-        div_history = ticker_obj.dividend_history(start=start_date, end=end_date)
-        
-        if isinstance(div_history, pd.DataFrame) and not div_history.empty:
-            dividends = []
+@dataclass
+class DividendRecord:
+    """Data class for dividend records."""
+    date: str
+    amount: float
+
+class DividendDatabase:
+    """Handle all database operations for dividend data."""
+    
+    def __init__(self, db_path: Union[str, Path] = DB_PATH):
+        self.db_path = Path(db_path)
+        self.ensure_db_directory()
+        self.conn = None
+        self.cursor = None
+
+    def ensure_db_directory(self) -> None:
+        """Ensure the database directory exists."""
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def connect(self) -> None:
+        """Establish database connection and create tables if needed."""
+        self.conn = sqlite3.connect(self.db_path)
+        self.cursor = self.conn.cursor()
+        self._create_tables()
+
+    def close(self) -> None:
+        """Close database connection."""
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+            self.cursor = None
+
+    def _create_tables(self) -> None:
+        """Create necessary database tables."""
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS stocks (
+                id INTEGER PRIMARY KEY,
+                ticker TEXT NOT NULL,
+                date TEXT NOT NULL,
+                dividend REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (ticker, date)
+            )
+        ''')
+        self.cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_ticker_date 
+            ON stocks(ticker, date)
+        ''')
+        self.conn.commit()
+
+    def insert_dividend_data(self, ticker: str, records: List[DividendRecord]) -> None:
+        """Insert dividend records for a ticker."""
+        if not records:
+            return
+
+        rows = [(ticker, record.date, record.amount) for record in records]
+        try:
+            self.cursor.executemany(
+                'INSERT OR REPLACE INTO stocks (ticker, date, dividend) VALUES (?, ?, ?)',
+                rows
+            )
+            self.conn.commit()
+            logger.info(f"Inserted {len(rows)} dividend records for {ticker}")
+        except sqlite3.Error as e:
+            logger.error(f"Database error for {ticker}: {e}")
+            self.conn.rollback()
+
+    def get_ticker_dividend_history(self, ticker: str) -> List[DividendRecord]:
+        """Retrieve dividend history for a ticker."""
+        try:
+            self.cursor.execute(
+                'SELECT date, dividend FROM stocks WHERE ticker = ? ORDER BY date DESC',
+                (ticker,)
+            )
+            return [DividendRecord(date=row[0], amount=row[1]) for row in self.cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Error retrieving dividend history for {ticker}: {e}")
+            return []
+
+class DividendDataFetcher:
+    """Handle fetching dividend data from Yahoo Finance."""
+    
+    @staticmethod
+    def fetch_dividend_data(ticker: str) -> List[DividendRecord]:
+        """Fetch dividend history for a ticker."""
+        try:
+            ticker_obj = Ticker(ticker, timeout=30)
+            end_date = datetime.datetime.now()
+            start_date = end_date - datetime.timedelta(days=365 * YEARS_OF_HISTORY)
+            
+            div_history = ticker_obj.dividend_history(start=start_date, end=end_date)
+            
+            if not isinstance(div_history, pd.DataFrame) or div_history.empty:
+                return []
+
+            records = []
             for _, row in div_history.iterrows():
                 if row['dividend'] > 0:
-                    dividends.append({
-                        'date': row['date'].strftime('%Y-%m'),
-                        'amount': float(row['dividend'])
-                    })
-            return dividends
-        return []
-        
-    except Exception as e:
-        print(f"Error fetching dividend data for {ticker}: {e}")
-        return []
+                    records.append(DividendRecord(
+                        date=row['date'].strftime('%Y-%m'),
+                        amount=float(row['dividend'])
+                    ))
+            return records
 
-def create_database():
-    """
-    Creates the database for the dividend history of each company.
+        except Exception as e:
+            logger.error(f"Error fetching dividend data for {ticker}: {e}")
+            return []
 
-    Parameters:
-	None
+class DividendDataProcessor:
+    """Main class for processing dividend data."""
+    
+    def __init__(self):
+        self.db = DividendDatabase()
+        self.fetcher = DividendDataFetcher()
 
-    Returns:
-    sqlite3.conn: connection to the dividend database.
-    """
-    conn = sqlite3.connect('FlaskApp/dividend_data.db')
-    cursor = conn.cursor()
+    def process_tickers(self, tickers: List[str]) -> None:
+        """Process dividend data for multiple tickers."""
+        try:
+            self.db.connect()
+            
+            for i in range(0, len(tickers), BATCH_SIZE):
+                batch = tickers[i:i + BATCH_SIZE]
+                self._process_batch(batch)
+                
+                if i + BATCH_SIZE < len(tickers):
+                    logger.info(f"Sleeping between batches...")
+                    time.sleep(2)  # Prevent rate limiting
+                    
+        finally:
+            self.db.close()
 
-    # Create tables
-    cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
-                        id INTEGER PRIMARY KEY,
-                        ticker TEXT NOT NULL,
-                        date TEXT NOT NULL,
-                        dividend REAL,
-                        UNIQUE (ticker, date)
-                    )''')
+    def _process_batch(self, tickers: List[str]) -> None:
+        """Process a batch of tickers."""
+        for ticker in tqdm(tickers, desc="Processing dividend data"):
+            records = self.fetcher.fetch_dividend_data(ticker)
+            if records:
+                self.db.insert_dividend_data(ticker, records)
+            time.sleep(0.5)  # Small delay between requests
 
-    conn.commit()
-    return conn
-
-def insert_data_into_database(conn, ticker, data):
-    """
-    Insert the yearly financial data into the database.
-
-    Parameters:
-	conn (sqlite3.conn): The connection to the dividend database.
-    ticker (str): The ticker symbol of the company.
-	data (dict): The dividend data for the last 15 years.
-
-    Returns:
-    None
-    """
-    cursor = conn.cursor()
-
-    # Prepare a list of tuples to be inserted
-    rows_to_insert = [(ticker, dateamount['date'], dateamount['amount']) for dateamount in data]
-
-    # Use executemany to insert all rows in a single operation
-    cursor.executemany('''INSERT OR IGNORE INTO stocks (ticker, date, dividend)
-                          VALUES (?, ?, ?)''', rows_to_insert)
-
-    conn.commit()
-
-def printDB():
-    """
-    Prints out the entire database for the dividends of each company.
-
-    Parameters:
-	None
-
-    Returns:
-    None
-    """
-    try:
-        # Connect to SQLite database
-        conn = sqlite3.connect('FlaskApp/dividend_data.db')
-        c = conn.cursor()
-
-        # Execute a SELECT query to fetch all rows from the table
-        c.execute('SELECT * FROM stocks')
-
-        # Fetch all rows from the result cursor
-        rows = c.fetchall()
-
-        if not rows:
-            print("No data found in the 'stocks' table.")
-        else:
-            # Print the fetched rows
-            for row in rows:
-                print(row)
-
-    except sqlite3.Error as e:
-        print(f"Error reading data from database: {e}")
-
-    finally:
-        # Close the connection
-        if conn:
-            conn.close()
+def get_tickers_with_dividend_within_a_week() -> List[str]:
+    """Get list of tickers with upcoming dividends."""
+    from csv_manipulation import extract_all_valid_tickers_from_csvs
+    from CRUD_ex_dividend_database import get_tickers_with_dividend_within_a_week
+    return get_tickers_with_dividend_within_a_week()
 
 def main():
-    # Create database and get connection
-    conn = sqlite3.connect('FlaskApp/dividend_data.db')
+    logger.info("Starting dividend data update process")
     
-    tickers = get_tickers_with_dividend_within_a_week()
-
-    # test ticker set
-    # tickers = ['AAPL', 'GOOGL']
-    # print(len(tickers))
-
-    for ticker in tqdm(tickers, desc="Updating dividends database"):
-        data = extract_dividend_data(ticker)
-        insert_data_into_database(conn, ticker, data)
-        time.sleep(1)
-    conn.close()
-
-	# Uncomment the following line if you want to print the database contents
-    # printDB()
+    try:
+        tickers = get_tickers_with_dividend_within_a_week()
+        logger.info(f"Found {len(tickers)} tickers to process")
+        
+        processor = DividendDataProcessor()
+        processor.process_tickers(tickers)
+        
+        logger.info("Dividend data update completed successfully")
+        
+    except Exception as e:
+        logger.error(f"Error in main process: {e}", exc_info=True)
+        raise
 
 if __name__ == "__main__":
     main()

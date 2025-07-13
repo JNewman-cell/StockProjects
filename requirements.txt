@@ -11,3 +11,8 @@ lxml>=4.9.3  # Required by yahooquery for parsing
 beautifulsoup4>=4.12.3  # Required by yahooquery for parsing
 aiohttp>=3.9.3  # Required by yahooquery for async requests
 numpy>=1.26.4  # Required by pandas
+
+# Testing dependencies
+pytest>=8.0.2
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0

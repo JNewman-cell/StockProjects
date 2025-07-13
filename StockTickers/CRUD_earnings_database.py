@@ -2,211 +2,284 @@ import sqlite3
 import datetime
 import json
 import time
-from csv_manipulation import extract_all_valid_tickers_from_csvs
+import logging
+from pathlib import Path
+from typing import Optional, List, Dict, Any, Union
+from contextlib import contextmanager
+from dataclasses import dataclass
 from tqdm import tqdm
 from yahooquery import Ticker
+from tenacity import retry, stop_after_attempt, wait_exponential
+from csv_manipulation import extract_all_valid_tickers_from_csvs
 
-def get_earnings_date_API(ticker):
-    """
-    Get the earnings date of a company using its ticker symbol from yahooquery.
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-    Parameters:
-    ticker (str): The ticker symbol of the company.
+@dataclass
+class EarningsData:
+    """Data class to represent earnings information."""
+    ticker: str
+    date: str
+    eps_estimate: Optional[float] = None
+    eps_actual: Optional[float] = None
+    revenue_estimate: Optional[float] = None
+    revenue_actual: Optional[float] = None
 
-    Returns:
-    str: The earnings date of the company.
-    """
-    try:
-        ticker_obj = Ticker(ticker, timeout=30)
-        calendar_info = ticker_obj.calendar_events
-        
-        if isinstance(calendar_info, dict) and ticker in calendar_info:
-            earnings_dates = calendar_info[ticker].get('earnings', {}).get('earningsDate', [])
-            if earnings_dates:
-                # Return the first upcoming earnings date
-                return earnings_dates[0].strftime('%Y-%m-%d')
-        return None
-        
-    except Exception as e:
-        print(f"Error fetching earnings date for {ticker}: {e}")
-        return None
-
-def get_earnings_date_DB(ticker):
-    """
-    Get the entire row of a company using its ticker symbol from DB.
-
-    Parameters:
-    ticker (str): The ticker symbol of the company.
-
-    Returns:
-    tuple: The entire row of the company.
-    """
-    conn = sqlite3.connect('FlaskApp/earnings_data.db')
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT date FROM stocks WHERE ticker = ?", (ticker,))
-    result = cursor.fetchone()
-
-    conn.close()
-
-    return result
-
-def ticker_in_database(ticker):
-    """
-    Check if a ticker is present in the database.
-
-    Parameters:
-    ticker (str): The ticker symbol of the company.
-
-    Returns:
-    bool: True if the ticker is present, False otherwise.
-    """
-    conn = sqlite3.connect('FlaskApp/earnings_data.db')
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT 1 FROM stocks WHERE ticker = ?", (ticker,))
-    result = cursor.fetchone()
-
-    conn.close()
-
-    return result is not None
-
-def get_tickers_with_earnings_within_a_week():
-    tickers_with_earnings = []
+class EarningsDatabase:
+    """Class to manage earnings database operations."""
     
-    with open('StockTickers/weekly_earnings.json', 'r') as jsonfile:
-        tickers_with_earnings = json.load(jsonfile)
+    def __init__(self, db_path: str = 'FlaskApp/earnings_data.db'):
+        """Initialize the EarningsDatabase.
+        
+        Args:
+            db_path: Path to the SQLite database file
+        """
+        self.db_path = db_path
+        self._create_database()
 
-    return tickers_with_earnings
-
-def create_database():
-    """
-    Creates the database for the yearly financials of each company.
-
-    Parameters:
-    None
-
-    Returns:
-    conn (sqlite3.Connection): connection to the yearly financial database.
-    """
-    conn = sqlite3.connect('FlaskApp/earnings_data.db')
-    cursor = conn.cursor()
-
-    cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
-                        id INTEGER PRIMARY KEY,
-                        ticker TEXT NOT NULL,
-                        date TEXT NOT NULL
-                    )''')
-
-    conn.commit()
-    return conn
-
-def insert_data_into_database(conn, ticker, earnings_date):
-    """
-    Insert the earnings date into the database if it is within a week of today.
-
-    Parameters:
-    conn (sqlite3.Connection): The database connection.
-    ticker (str): The ticker symbol of the company.
-    earnings_date (str): The earnings date of the company.
-
-    Returns:
-    None
-    """
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO stocks (ticker, date) VALUES (?, ?)", (ticker, earnings_date))
-    conn.commit()
-
-def delete_ticker_from_database(conn, ticker):
-    """
-    Delete an entry from the database using its ticker symbol.
-
-    Parameters:
-    conn (sqlite3.Connection): The database connection.
-    ticker (str): The ticker symbol of the company.
-
-    Returns:
-    None
-    """
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM stocks WHERE ticker = ?", (ticker,))
-    conn.commit()
-
-def printDB():
-    try:
-        conn = sqlite3.connect('FlaskApp/earnings_data.db')
-        c = conn.cursor()
-        c.execute('SELECT * FROM stocks')
-        rows = c.fetchall()
-
-        if not rows:
-            print("No data found in the 'stocks' table.")
-        else:
-            # print the fetched rows
-            for row in rows:
-                print(row)
-
-    except sqlite3.Error as e:
-        print(f"Error reading data from database: {e}")
-
-    finally:
-        # Close the connection
-        if conn:
+    @contextmanager
+    def _get_connection(self):
+        """Context manager for database connections."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            yield conn
+        finally:
             conn.close()
 
-def update_earnings_db_and_weekly_earnings():
-    conn = create_database()
-    tickers = extract_all_valid_tickers_from_csvs()
+    def _create_database(self) -> None:
+        """Create the earnings database if it doesn't exist."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''CREATE TABLE IF NOT EXISTS stocks (
+                    id INTEGER PRIMARY KEY,
+                    ticker TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    eps_estimate REAL,
+                    eps_actual REAL,
+                    revenue_estimate REAL,
+                    revenue_actual REAL,
+                    UNIQUE(ticker, date)
+                )''')
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Error creating database: {e}")
+            raise
 
-    # tickers = ['AAPL', 'MSFT', 'NFLX']
-    new_weekly_earnings = []
-    with open('StockTickers/weekly_earnings.json', 'r') as jsonfile:
-        weekly_earnings = json.load(jsonfile)
-
-    today = datetime.datetime.today()
-    one_week_from_now = today + datetime.timedelta(days=7)
-    # printDB()
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    def get_earnings_date_api(self, ticker: str) -> Optional[str]:
+        """Get earnings date from Yahoo Finance API with retry logic.
         
-    for ticker in tqdm(tickers, desc="Updating earnings and weekly earnings"):
-        # ticker is not in the database, indicating that it should be checked
-        if not ticker_in_database(ticker):
-            # ticker is not in the weekly_earnings database meaning we have to fetch the data from the API
-            earnings_date = get_earnings_date_API(ticker)
-            # print(ticker)
-            # print(earnings_date)
-            # earnings date is in the yfinance API
-            if earnings_date != None:
-                try:
-                    # print(earnings_date)
-                    # convert datetime.date to datetime.dateime to compare to today's date
-                    earnings_comp = datetime.datetime(earnings_date.year, earnings_date.month, earnings_date.day)
-                except Exception as e:
-                    continue
-                # earnings are not coming up in the next week, no need to check the earnings
-                if not today <= earnings_comp <= one_week_from_now:
-                    insert_data_into_database(conn, ticker, earnings_date)
+        Args:
+            ticker: Stock ticker symbol
+            
+        Returns:
+            Formatted earnings date or None if not found
+        """
+        try:
+            ticker_obj = Ticker(ticker, timeout=30)
+            calendar_info = ticker_obj.calendar_events
+            
+            if isinstance(calendar_info, dict) and ticker in calendar_info:
+                earnings_dates = calendar_info[ticker].get('earnings', {}).get('earningsDate', [])
+                if earnings_dates:
+                    return earnings_dates[0].strftime('%Y-%m-%d')
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error fetching earnings date for {ticker}: {e}")
+            return None
+
+    def get_earnings_date(self, ticker: str) -> Optional[EarningsData]:
+        """Get earnings information from database.
+        
+        Args:
+            ticker: Stock ticker symbol
+            
+        Returns:
+            EarningsData object or None if not found
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT ticker, date, eps_estimate, eps_actual, 
+                           revenue_estimate, revenue_actual 
+                    FROM stocks 
+                    WHERE ticker = ?
+                """, (ticker,))
+                row = cursor.fetchone()
+                
+                if row:
+                    return EarningsData(
+                        ticker=row[0],
+                        date=row[1],
+                        eps_estimate=row[2],
+                        eps_actual=row[3],
+                        revenue_estimate=row[4],
+                        revenue_actual=row[5]
+                    )
+                return None
+        except sqlite3.Error as e:
+            logger.error(f"Database error for ticker {ticker}: {e}")
+            return None
+
+    def ticker_exists(self, ticker: str) -> bool:
+        """Check if a ticker exists in the database.
+        
+        Args:
+            ticker: Stock ticker symbol
+            
+        Returns:
+            True if ticker exists, False otherwise
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT 1 FROM stocks WHERE ticker = ?", (ticker,))
+                return cursor.fetchone() is not None
+        except sqlite3.Error as e:
+            logger.error(f"Error checking ticker existence for {ticker}: {e}")
+            return False
+
+    def insert_earnings(self, data: EarningsData) -> bool:
+        """Insert or update earnings data.
+        
+        Args:
+            data: EarningsData object containing the data to insert
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO stocks 
+                    (ticker, date, eps_estimate, eps_actual, revenue_estimate, revenue_actual)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    data.ticker, data.date, data.eps_estimate, data.eps_actual,
+                    data.revenue_estimate, data.revenue_actual
+                ))
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Error inserting data for {data.ticker}: {e}")
+            return False
+
+    def delete_ticker(self, ticker: str) -> bool:
+        """Delete a ticker from the database.
+        
+        Args:
+            ticker: Stock ticker symbol
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM stocks WHERE ticker = ?", (ticker,))
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            logger.error(f"Error deleting ticker {ticker}: {e}")
+            return False
+
+    def get_all_earnings(self) -> List[EarningsData]:
+        """Get all earnings data from database.
+        
+        Returns:
+            List of EarningsData objects
+        """
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT ticker, date, eps_estimate, eps_actual, 
+                           revenue_estimate, revenue_actual 
+                    FROM stocks
+                """)
+                return [
+                    EarningsData(
+                        ticker=row[0],
+                        date=row[1],
+                        eps_estimate=row[2],
+                        eps_actual=row[3],
+                        revenue_estimate=row[4],
+                        revenue_actual=row[5]
+                    )
+                    for row in cursor.fetchall()
+                ]
+        except sqlite3.Error as e:
+            logger.error(f"Error fetching all earnings data: {e}")
+            return []
+
+    def update_earnings_cache(self) -> None:
+        """Update earnings database and weekly earnings cache."""
+        today = datetime.datetime.today()
+        one_week_from_now = today + datetime.timedelta(days=7)
+        new_weekly_earnings = []
+        
+        try:
+            # Load existing weekly earnings
+            weekly_earnings_path = Path('StockTickers/weekly_earnings.json')
+            if weekly_earnings_path.exists():
+                with weekly_earnings_path.open('r') as f:
+                    weekly_earnings = json.load(f)
+            else:
+                weekly_earnings = []
+
+            # Get all tickers
+            tickers = extract_all_valid_tickers_from_csvs()
+            
+            for ticker in tqdm(tickers, desc="Updating earnings data"):
+                if not self.ticker_exists(ticker):
+                    earnings_date = self.get_earnings_date_api(ticker)
+                    if earnings_date:
+                        try:
+                            earnings_datetime = datetime.datetime.strptime(earnings_date, '%Y-%m-%d')
+                            if today <= earnings_datetime <= one_week_from_now:
+                                if ticker not in weekly_earnings:
+                                    new_weekly_earnings.append(ticker)
+                            else:
+                                self.insert_earnings(EarningsData(ticker=ticker, date=earnings_date))
+                        except ValueError as e:
+                            logger.error(f"Error parsing date for {ticker}: {e}")
+                            continue
+                    time.sleep(1)  # Rate limiting
                 else:
-                    # earnings are coming up and it wasn't found in the weekly earnings list, therefore we should check for report
-                    if ticker not in weekly_earnings:
-                        new_weekly_earnings.append(ticker)
-            time.sleep(1)
-        elif ticker_in_database(ticker):
-            # if the ticker is in the database, do the same comparison to find the new upcoming weekly earnings
-            earnings_date = datetime.datetime.strptime(get_earnings_date_DB(ticker)[0], "%Y-%m-%d").date()
-            # print(earnings_date)
-            earnings_comp = datetime.datetime(earnings_date.year, earnings_date.month, earnings_date.day)
-            if not today <= earnings_comp <= one_week_from_now:
-                delete_ticker_from_database(conn, ticker)
-                new_weekly_earnings.append(ticker)
+                    current_data = self.get_earnings_date(ticker)
+                    if current_data:
+                        earnings_datetime = datetime.datetime.strptime(current_data.date, '%Y-%m-%d')
+                        if today <= earnings_datetime <= one_week_from_now:
+                            if ticker not in weekly_earnings:
+                                new_weekly_earnings.append(ticker)
+                                self.delete_ticker(ticker)
 
-    # save the list of tickers with upcoming earnings to a json file for use in other scripts
-    with open('StockTickers/weekly_earnings.json', 'w') as jsonfile:
-        json.dump(new_weekly_earnings, jsonfile)
+            # Update weekly earnings cache
+            with weekly_earnings_path.open('w') as f:
+                json.dump(new_weekly_earnings, f)
 
-    conn.close()
+        except Exception as e:
+            logger.error(f"Error updating earnings cache: {e}")
+            raise
 
 def main():
-	printDB()
+    """Main function for testing and manual updates."""
+    try:
+        db = EarningsDatabase()
+        all_earnings = db.get_all_earnings()
+        logger.info(f"Total earnings records: {len(all_earnings)}")
+        for earning in all_earnings:
+            logger.info(f"{earning.ticker}: {earning.date}")
+    except Exception as e:
+        logger.error(f"Error in main: {e}")
 
 if __name__ == "__main__":
     main()
