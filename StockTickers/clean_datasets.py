@@ -48,7 +48,7 @@ def fetch_market_caps(tickers, nonexistent_market_caps):
         quotes = ticker_data.price
 
         # Process results
-        for ticker in tickers_to_fetch:
+        for ticker in tqdm(tickers_to_fetch, desc="Fetching market caps", unit="ticker"):
             try:
                 if isinstance(quotes, dict) and ticker in quotes:
                     ticker_info = quotes[ticker]
