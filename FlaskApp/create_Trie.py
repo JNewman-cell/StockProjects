@@ -81,11 +81,12 @@ class Trie:
         """
         if not ticker or not ticker.isalpha() or not ticker.isupper():
             raise InvalidTickerError(f"Invalid ticker symbol: {ticker}")
-        if market_cap < 0:
-            raise InvalidTickerError(f"Invalid market cap for {ticker}: {market_cap}")
-
+            
         try:
-            market_cap = int(float(market_cap))  # Handle string or float inputs
+            market_cap = float(market_cap) if isinstance(market_cap, str) else float(market_cap)
+            if market_cap < 0:
+                raise InvalidTickerError(f"Invalid market cap for {ticker}: {market_cap}")
+            market_cap = int(market_cap)  # Convert to integer after validation
             node = self.root
             for char in ticker:
                 if char not in node.children:
