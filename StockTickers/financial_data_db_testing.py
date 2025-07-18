@@ -1,7 +1,11 @@
 import yahoo_fin.stock_info as si
 
+import pandas as pd
+import yahoo_fin.stock_info as si
+from typing import Dict, List, Optional, Any
+from pathlib import Path
+
 def find_year_index(columns, year):
-    for i in range(len(columns)):
         if str(year) in str(columns[i]):
             return i
     return None

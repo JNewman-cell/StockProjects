@@ -11,6 +11,7 @@ from tqdm import tqdm
 from yahooquery import Ticker
 from tenacity import retry, stop_after_attempt, wait_exponential
 from csv_manipulation import extract_all_valid_tickers_from_csvs
+from .dividend_utils import get_tickers_with_dividend_within_a_week
 
 # Set up logging
 import logging

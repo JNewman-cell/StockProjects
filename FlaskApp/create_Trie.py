@@ -6,17 +6,22 @@ stock ticker symbols with their market caps. It provides fast prefix-based searc
 and returns results ordered by market capitalization.
 """
 
-import csv
-import pickle
-import sys
 import os
+import sys
+import pickle
+import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union, Any
 from dataclasses import dataclass
-import logging
 from contextlib import contextmanager
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../StockTickers'))
+# Add parent directory to path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+logger.info(f"Added {parent_dir} to Python path")
+
 from csv_manipulation import extract_all_valid_tickers_and_market_caps_from_csvs
 
 # Configure logging

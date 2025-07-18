@@ -9,6 +9,7 @@ from collections import defaultdict
 import pandas as pd
 from yahooquery import Ticker
 from tqdm import tqdm
+from .dividend_utils import get_tickers_with_dividend_within_a_week
 
 # Configure logging
 logging.basicConfig(
@@ -166,12 +167,6 @@ class DividendDataProcessor:
             if records:
                 self.db.insert_dividend_data(ticker, records)
             time.sleep(0.5)  # Small delay between requests
-
-def get_tickers_with_dividend_within_a_week() -> List[str]:
-    """Get list of tickers with upcoming dividends."""
-    from csv_manipulation import extract_all_valid_tickers_from_csvs
-    from CRUD_ex_dividend_database import get_tickers_with_dividend_within_a_week
-    return get_tickers_with_dividend_within_a_week()
 
 def main():
     logger.info("Starting dividend data update process")

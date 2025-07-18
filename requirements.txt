@@ -1,16 +1,17 @@
 Flask==3.0.3  # Latest stable release
-pandas==2.0.3  # Stable release
+numpy==1.24.3  # Fixed version for compatibility
+pandas==2.0.3  # Stable release that works with numpy 1.24.3
 python-dateutil==2.9.0.post0  # Latest stable release
 pytz==2024.1  # Latest stable release
 tqdm==4.66.5  # Latest stable release
 yahooquery==2.3.7  # Latest stable release
+yahoo-fin>=0.8.9  # For financial data fetching
 tenacity==8.2.3  # Latest stable release
 requests==2.31.0  # Latest stable release
 urllib3==2.2.1  # Latest stable release
 lxml>=4.9.3  # Required by yahooquery for parsing
 beautifulsoup4>=4.12.3  # Required by yahooquery for parsing
 aiohttp>=3.9.3  # Required by yahooquery for async requests
-numpy>=1.26.4  # Required by pandas
 
 # Testing dependencies
 pytest>=8.0.2

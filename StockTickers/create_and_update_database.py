@@ -1,12 +1,29 @@
 import sqlite3
 import datetime
 import time
+import os
+import logging
+import sqlite3
+from pathlib import Path
 from collections import defaultdict
-from csv_manipulation import extract_all_valid_tickers_from_csvs
-from CRUD_earnings_database import get_tickers_with_earnings_within_a_week
 from datetime import datetime
+from typing import Dict, List, Optional, Any
 from tqdm import tqdm
 from yahooquery import Ticker
+
+from csv_manipulation import extract_all_valid_tickers_from_csvs
+from CRUD_earnings_database import get_tickers_with_earnings_within_a_week
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('financial_data.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 def find_year_index(columns, year):
 	"""
